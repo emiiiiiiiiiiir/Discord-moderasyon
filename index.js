@@ -30,8 +30,13 @@ const commands = [
     .setName('rütbe-değiştir')
     .setDescription('Belirtilen rütbeyi kullanıcıya verir')
     .addStringOption(option =>
+      option.setName('yonetici_roblox_nick')
+        .setDescription('Kendi Roblox kullanıcı adınız (yetki kontrolü için)')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
       option.setName('roblox_nick')
-        .setDescription('Roblox kullanıcı adı')
+        .setDescription('Rütbe verilecek kişinin Roblox kullanıcı adı')
         .setRequired(true)
     )
     .addStringOption(option =>
@@ -44,8 +49,13 @@ const commands = [
     .setName('rütbe-terfi')
     .setDescription('Kullanıcıya 1 seviye terfi verir')
     .addStringOption(option =>
+      option.setName('yonetici_roblox_nick')
+        .setDescription('Kendi Roblox kullanıcı adınız (yetki kontrolü için)')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
       option.setName('roblox_nick')
-        .setDescription('Roblox kullanıcı adı')
+        .setDescription('Terfi edilecek kişinin Roblox kullanıcı adı')
         .setRequired(true)
     ),
   
@@ -53,8 +63,13 @@ const commands = [
     .setName('rütbe-tenzil')
     .setDescription('Kullanıcıya 1 seviye tenzil verir')
     .addStringOption(option =>
+      option.setName('yonetici_roblox_nick')
+        .setDescription('Kendi Roblox kullanıcı adınız (yetki kontrolü için)')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
       option.setName('roblox_nick')
-        .setDescription('Roblox kullanıcı adı')
+        .setDescription('Tenzil edilecek kişinin Roblox kullanıcı adı')
         .setRequired(true)
     ),
   

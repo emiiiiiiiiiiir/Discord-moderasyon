@@ -152,6 +152,46 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
+async function checkRankPermissions(managerUsername, targetRank) {
+  const managerId = await robloxAPI.getUserIdByUsername(managerUsername);
+  if (!managerId) {
+    return { 
+      allowed: false, 
+      message: '❌ Yönetici Roblox kullanıcı adı bulunamadı!' 
+    };
+  }
+
+  const managerRank = await robloxAPI.getUserRankInGroup(managerId, config.groupId);
+  if (!managerRank) {
+    return { 
+      allowed: false, 
+      message: '❌ Grupta olmayan kişiler rütbe veremez!' 
+    };
+  }
+
+  if (managerRank.rank < config.minRankToManage) {
+    return { 
+      allowed: false, 
+      message: `❌ Rütbe vermek için en az ${config.minRankToManage} seviye rütbeye sahip olmalısınız! (Sizin rütbeniz: ${managerRank.rank})` 
+    };
+  }
+
+  const maxAllowedRank = Math.min(managerRank.rank, config.maxRankCanAssign);
+  
+  if (targetRank > maxAllowedRank) {
+    return { 
+      allowed: false, 
+      message: `❌ En fazla ${maxAllowedRank} seviye rütbe verebilirsiniz! (Hedef rütbe: ${targetRank})` 
+    };
+  }
+
+  return { 
+    allowed: true, 
+    managerRank: managerRank,
+    maxAllowedRank: maxAllowedRank 
+  };
+}
+
 async function handleRankQuery(interaction) {
   await interaction.deferReply();
   
@@ -185,18 +225,15 @@ async function handleRankQuery(interaction) {
 }
 
 async function handleRankChange(interaction) {
-  if (!interaction.member.roles.cache.has(config.adminRoleId)) {
-    return interaction.reply({ content: '❌ Bu komutu kullanma yetkiniz yok!', ephemeral: true });
-  }
-  
   await interaction.deferReply();
   
+  const managerRobloxNick = interaction.options.getString('yonetici_roblox_nick');
   const robloxNick = interaction.options.getString('roblox_nick');
   const targetRankName = interaction.options.getString('rütbe');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('❌ Kullanıcı bulunamadı!');
+    return interaction.editReply('❌ Hedef kullanıcı bulunamadı!');
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
@@ -210,6 +247,11 @@ async function handleRankChange(interaction) {
     return interaction.editReply('❌ Belirtilen rütbe bulunamadı!');
   }
   
+  const permissionCheck = await checkRankPermissions(managerRobloxNick, targetRole.rank);
+  if (!permissionCheck.allowed) {
+    return interaction.editReply(permissionCheck.message);
+  }
+  
   const result = await robloxAPI.setUserRole(userId, config.groupId, targetRole.id, ROBLOX_COOKIE);
   
   if (result) {
@@ -217,6 +259,7 @@ async function handleRankChange(interaction) {
       .setTitle('✅ Rütbe Değiştirildi')
       .setDescription(`**${robloxNick}** adlı kullanıcının rütbesi değiştirildi`)
       .addFields(
+        { name: '👤 Yönetici', value: `${managerRobloxNick} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
         { name: '🆕 Yeni Rütbe', value: targetRole.name, inline: true },
         { name: '🔢 Rütbe Seviyesi', value: targetRole.rank.toString(), inline: true }
       )
@@ -230,17 +273,14 @@ async function handleRankChange(interaction) {
 }
 
 async function handleRankPromotion(interaction) {
-  if (!interaction.member.roles.cache.has(config.adminRoleId)) {
-    return interaction.reply({ content: '❌ Bu komutu kullanma yetkiniz yok!', ephemeral: true });
-  }
-  
   await interaction.deferReply();
   
+  const managerRobloxNick = interaction.options.getString('yonetici_roblox_nick');
   const robloxNick = interaction.options.getString('roblox_nick');
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('❌ Kullanıcı bulunamadı!');
+    return interaction.editReply('❌ Hedef kullanıcı bulunamadı!');
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
@@ -261,6 +301,12 @@ async function handleRankPromotion(interaction) {
   }
   
   const nextRole = sortedRoles[currentIndex + 1];
+  
+  const permissionCheck = await checkRankPermissions(managerRobloxNick, nextRole.rank);
+  if (!permissionCheck.allowed) {
+    return interaction.editReply(permissionCheck.message);
+  }
+  
   const result = await robloxAPI.setUserRole(userId, config.groupId, nextRole.id, ROBLOX_COOKIE);
   
   if (result) {
@@ -268,6 +314,7 @@ async function handleRankPromotion(interaction) {
       .setTitle('⬆️ Terfi Edildi')
       .setDescription(`**${robloxNick}** terfi edildi`)
       .addFields(
+        { name: '👤 Yönetici', value: `${managerRobloxNick} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
         { name: '📉 Eski Rütbe', value: currentRank.name, inline: true },
         { name: '📈 Yeni Rütbe', value: nextRole.name, inline: true }
       )
@@ -281,17 +328,14 @@ async function handleRankPromotion(interaction) {
 }
 
 async function handleRankDemotion(interaction) {
-  if (!interaction.member.roles.cache.has(config.adminRoleId)) {
-    return interaction.reply({ content: '❌ Bu komutu kullanma yetkiniz yok!', ephemeral: true });
-  }
-  
   await interaction.deferReply();
   
+  const managerRobloxNick = interaction.options.getString('yonetici_roblox_nick');
   const robloxNick = interaction.options.getString('roblox_nick');
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('❌ Kullanıcı bulunamadı!');
+    return interaction.editReply('❌ Hedef kullanıcı bulunamadı!');
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
@@ -312,6 +356,12 @@ async function handleRankDemotion(interaction) {
   }
   
   const prevRole = sortedRoles[currentIndex - 1];
+  
+  const permissionCheck = await checkRankPermissions(managerRobloxNick, currentRank.rank);
+  if (!permissionCheck.allowed) {
+    return interaction.editReply(permissionCheck.message);
+  }
+  
   const result = await robloxAPI.setUserRole(userId, config.groupId, prevRole.id, ROBLOX_COOKIE);
   
   if (result) {
@@ -319,6 +369,7 @@ async function handleRankDemotion(interaction) {
       .setTitle('⬇️ Tenzil Edildi')
       .setDescription(`**${robloxNick}** tenzil edildi`)
       .addFields(
+        { name: '👤 Yönetici', value: `${managerRobloxNick} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
         { name: '📈 Eski Rütbe', value: currentRank.name, inline: true },
         { name: '📉 Yeni Rütbe', value: prevRole.name, inline: true }
       )

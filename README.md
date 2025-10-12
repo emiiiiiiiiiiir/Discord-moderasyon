@@ -20,13 +20,17 @@ Botun çalışması için aşağıdaki ortam değişkenlerini ayarlamanız gerek
 {
   "groupId": "ROBLOX_GRUP_ID",
   "gameId": "ROBLOX_OYUN_UNIVERSE_ID",
-  "adminRoleId": "DISCORD_ADMIN_ROLE_ID"
+  "adminRoleId": "DISCORD_ADMIN_ROLE_ID",
+  "minRankToManage": 200,
+  "maxRankCanAssign": 250
 }
 ```
 
 - **groupId**: Roblox grup ID'niz
 - **gameId**: Roblox oyun Universe ID'si (aktiflik sorgusu için)
-- **adminRoleId**: Discord'da admin komutlarını kullanabilecek rolün ID'si
+- **adminRoleId**: Discord'da yasaklama komutlarını kullanabilecek rolün ID'si
+- **minRankToManage**: Rütbe yönetimi yapabilmek için minimum Roblox rütbe seviyesi
+- **maxRankCanAssign**: Yöneticilerin atayabileceği maksimum rütbe seviyesi
 
 ### 3. Discord Bot Yetkileri
 
@@ -45,12 +49,12 @@ Discord Developer Portal'da botunuza şu yetkileri verin:
 
 ## 📋 Komutlar
 
-### Rütbe Komutları (Roblox Nick ile)
+### Rütbe Komutları (Roblox Rütbe Bazlı Yetki Sistemi)
 
 - `/rütbe-sorgu <roblox_nick>` - Kullanıcının Roblox grubundaki rütbesini gösterir
-- `/rütbe-değiştir <roblox_nick> <rütbe>` - Kullanıcının rütbesini değiştirir (Admin)
-- `/rütbe-terfi <roblox_nick>` - Kullanıcıya 1 seviye terfi verir (Admin)
-- `/rütbe-tenzil <roblox_nick>` - Kullanıcıya 1 seviye tenzil verir (Admin)
+- `/rütbe-değiştir <yonetici_roblox_nick> <roblox_nick> <rütbe>` - Kullanıcının rütbesini değiştirir (Rütbe yetkisi gerekir)
+- `/rütbe-terfi <yonetici_roblox_nick> <roblox_nick>` - Kullanıcıya 1 seviye terfi verir (Rütbe yetkisi gerekir)
+- `/rütbe-tenzil <yonetici_roblox_nick> <roblox_nick>` - Kullanıcıya 1 seviye tenzil verir (Rütbe yetkisi gerekir)
 
 ### Discord Yasaklama Komutları (Discord User ID ile)
 
@@ -63,7 +67,14 @@ Discord Developer Portal'da botunuza şu yetkileri verin:
 
 ## 🔧 Kullanım Notları
 
-- Tüm admin komutları için `adminRoleId` rolüne sahip olmanız gerekir
+### Rütbe Yönetimi Sistemi
+- Rütbe verme komutları artık **Roblox rütbe seviyesine** göre çalışır
+- Rütbe vermek için kullanıcının Roblox grubunda `minRankToManage` değerinden yüksek rütbesi olmalıdır
+- Yöneticiler sadece kendi rütbelerinden düşük veya `maxRankCanAssign` değerinden düşük rütbeleri verebilir
+- Her rütbe komutu için kendi Roblox kullanıcı adınızı girmeniz gerekir (yetki kontrolü için)
+
+### Diğer Notlar
+- Discord yasaklama komutları için `adminRoleId` rolüne sahip olmanız gerekir
 - Roblox cookie'si, grup yönetim yetkisine sahip bir hesaptan alınmalıdır
 - Discord User ID'sini almak için: Kullanıcıya sağ tıklayın → "ID'yi Kopyala" (Geliştirici Modu aktif olmalı)
 

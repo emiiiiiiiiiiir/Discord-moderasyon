@@ -10,6 +10,11 @@ The bot provides comprehensive management features:
 - Game activity monitoring for the group's Roblox game
 
 **Recent Changes (October 12, 2025)**:
+- **Roblox Rank-Based Permission System**: Completely redesigned the rank management system to use Roblox group ranks instead of Discord roles for permissions
+- Added `checkRankPermissions()` helper function to validate manager's Roblox rank before allowing rank changes
+- Updated all rank management commands (`/rütbe-değiştir`, `/rütbe-terfi`, `/rütbe-tenzil`) to require manager's Roblox username for permission verification
+- Added `minRankToManage` and `maxRankCanAssign` configuration parameters for flexible rank permission control
+- Managers can now only assign ranks up to their own rank level or the configured maximum
 - Added X-CSRF token handling for Roblox API state-changing requests
 - Implemented null safety checks for API responses
 - Configured ban/unban commands to work with Discord user IDs instead of Roblox usernames
@@ -41,7 +46,11 @@ Preferred communication style: Simple, everyday language.
 ### Authentication & Authorization
 - **Discord Authentication**: Bot token authentication via environment variables
 - **Roblox Authentication**: `.ROBLOSECURITY` cookie for group management operations
-- **Permission System**: Discord role-based access control using `adminRoleId` from config
+- **Rank Permission System**: Roblox group rank-based access control for rank management commands
+  - Managers must have at least `minRankToManage` rank level to manage ranks
+  - Managers can only assign ranks up to their own rank or `maxRankCanAssign`, whichever is lower
+  - Permission verification happens via manager's Roblox username provided in each command
+- **Discord Role Permission System**: Discord role-based access control using `adminRoleId` for ban/unban commands only
 - **Required Bot Permissions**: Server Members Intent, Message Content Intent, Send Messages, Embed Links, Ban Members, Slash Commands
 
 ### Data Storage
@@ -81,4 +90,6 @@ Preferred communication style: Simple, everyday language.
 ### Configuration Dependencies
 - `groupId` - Target Roblox group identifier
 - `gameId` - Roblox game Universe ID for activity tracking
-- `adminRoleId` - Discord role ID with administrative permissions
+- `adminRoleId` - Discord role ID with administrative permissions for ban/unban commands
+- `minRankToManage` - Minimum Roblox group rank level required to manage other members' ranks
+- `maxRankCanAssign` - Maximum rank level that managers can assign to others

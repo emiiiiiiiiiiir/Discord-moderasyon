@@ -1,5 +1,7 @@
 {
   "groupId": "10919576",
   "gameId": "92340809504354",
-  "adminRoleId": "1425235464637644810"
+  "adminRoleId": "1425235464637644810",
+  "minRankToManage": 200,
+  "maxRankCanAssign": 250
 }

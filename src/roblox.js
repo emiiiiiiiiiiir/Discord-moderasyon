@@ -1,0 +1,133 @@
+const axios = require('axios');
+
+class RobloxAPI {
+  constructor() {
+    this.baseURL = 'https://api.roblox.com';
+    this.groupsURL = 'https://groups.roblox.com';
+    this.usersURL = 'https://users.roblox.com';
+    this.gamesURL = 'https://games.roblox.com';
+  }
+
+  // Kullanıcı adından Roblox ID'sini al
+  async getUserIdByUsername(username) {
+    try {
+      const response = await axios.post(`${this.usersURL}/v1/usernames/users`, {
+        usernames: [username],
+        excludeBannedUsers: false
+      });
+      
+      if (response.data.data && response.data.data.length > 0) {
+        return response.data.data[0].id;
+      }
+      return null;
+    } catch (error) {
+      console.error('Kullanıcı ID alınırken hata:', error.message);
+      return null;
+    }
+  }
+
+  // Kullanıcının grup rütbesini al
+  async getUserRankInGroup(userId, groupId) {
+    try {
+      const response = await axios.get(`${this.groupsURL}/v1/users/${userId}/groups/roles`);
+      const group = response.data.data.find(g => g.group.id === parseInt(groupId));
+      
+      if (group) {
+        return {
+          rank: group.role.rank,
+          name: group.role.name,
+          id: group.role.id
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Grup rütbesi alınırken hata:', error.message);
+      return null;
+    }
+  }
+
+  // Gruptaki tüm rütbeleri al
+  async getGroupRoles(groupId) {
+    try {
+      const response = await axios.get(`${this.groupsURL}/v1/groups/${groupId}/roles`);
+      return response.data.roles;
+    } catch (error) {
+      console.error('Grup rütbeleri alınırken hata:', error.message);
+      return null;
+    }
+  }
+
+  // Kullanıcının rütbesini değiştir (ROBLOX_COOKIE gerekli)
+  async setUserRole(userId, groupId, roleId, cookie) {
+    try {
+      const response = await axios.patch(
+        `${this.groupsURL}/v1/groups/${groupId}/users/${userId}`,
+        { roleId: roleId },
+        {
+          headers: {
+            'Cookie': `.ROBLOSECURITY=${cookie}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Rütbe değiştirme hatası:', error.response?.data || error.message);
+      return null;
+    }
+  }
+
+  // Kullanıcıyı gruptan yasakla (ROBLOX_COOKIE gerekli)
+  async banUserFromGroup(userId, groupId, cookie) {
+    try {
+      const response = await axios.delete(
+        `${this.groupsURL}/v1/groups/${groupId}/users/${userId}`,
+        {
+          headers: {
+            'Cookie': `.ROBLOSECURITY=${cookie}`
+          }
+        }
+      );
+      return true;
+    } catch (error) {
+      console.error('Yasaklama hatası:', error.response?.data || error.message);
+      return false;
+    }
+  }
+
+  // Oyun aktifliğini al
+  async getGameActivity(universeId) {
+    try {
+      const response = await axios.get(
+        `${this.gamesURL}/v1/games?universeIds=${universeId}`
+      );
+      
+      if (response.data.data && response.data.data.length > 0) {
+        const game = response.data.data[0];
+        return {
+          playing: game.playing,
+          visits: game.visits,
+          maxPlayers: game.maxPlayers,
+          name: game.name
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Oyun aktifliği alınırken hata:', error.message);
+      return null;
+    }
+  }
+
+  // Kullanıcı bilgilerini al
+  async getUserInfo(userId) {
+    try {
+      const response = await axios.get(`${this.usersURL}/v1/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Kullanıcı bilgisi alınırken hata:', error.message);
+      return null;
+    }
+  }
+}
+
+module.exports = new RobloxAPI();

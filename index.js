@@ -1,6 +1,7 @@
 const { Client, GatewayIntentBits, REST, Routes, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const config = require('./config.json');
 const robloxAPI = require('./src/roblox');
+const fs = require('fs');
 
 const client = new Client({
   intents: [
@@ -16,6 +17,80 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const ROBLOX_COOKIE = process.env.ROBLOX_COOKIE;
 
+const ACCOUNT_LINKS_FILE = './account_links.json';
+const PENDING_VERIFICATIONS_FILE = './pending_verifications.json';
+
+function loadAccountLinks() {
+  try {
+    if (fs.existsSync(ACCOUNT_LINKS_FILE)) {
+      const data = fs.readFileSync(ACCOUNT_LINKS_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Hesap bağlantıları yüklenirken hata:', error);
+  }
+  return {};
+}
+
+function saveAccountLinks(links) {
+  try {
+    fs.writeFileSync(ACCOUNT_LINKS_FILE, JSON.stringify(links, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Hesap bağlantıları kaydedilirken hata:', error);
+    return false;
+  }
+}
+
+function getLinkedRobloxUsername(discordUserId) {
+  const links = loadAccountLinks();
+  return links[discordUserId] || null;
+}
+
+function loadPendingVerifications() {
+  try {
+    if (fs.existsSync(PENDING_VERIFICATIONS_FILE)) {
+      const data = fs.readFileSync(PENDING_VERIFICATIONS_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Bekleyen doğrulamalar yüklenirken hata:', error);
+  }
+  return {};
+}
+
+function savePendingVerifications(verifications) {
+  try {
+    fs.writeFileSync(PENDING_VERIFICATIONS_FILE, JSON.stringify(verifications, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Bekleyen doğrulamalar kaydedilirken hata:', error);
+    return false;
+  }
+}
+
+function generateVerificationCode() {
+  return Math.random().toString(36).substring(2, 10).toUpperCase();
+}
+
+function cleanExpiredVerifications() {
+  const verifications = loadPendingVerifications();
+  const now = Date.now();
+  const EXPIRY_TIME = 10 * 60 * 1000; // 10 dakika
+  
+  let changed = false;
+  for (const userId in verifications) {
+    if (now - verifications[userId].timestamp > EXPIRY_TIME) {
+      delete verifications[userId];
+      changed = true;
+    }
+  }
+  
+  if (changed) {
+    savePendingVerifications(verifications);
+  }
+}
+
 const commands = [
   new SlashCommandBuilder()
     .setName('rütbe-sorgu')
@@ -29,11 +104,6 @@ const commands = [
   new SlashCommandBuilder()
     .setName('rütbe-değiştir')
     .setDescription('Belirtilen rütbeyi kullanıcıya verir')
-    .addStringOption(option =>
-      option.setName('yonetici_roblox_nick')
-        .setDescription('Kendi Roblox kullanıcı adınız (yetki kontrolü için)')
-        .setRequired(true)
-    )
     .addStringOption(option =>
       option.setName('roblox_nick')
         .setDescription('Rütbe verilecek kişinin Roblox kullanıcı adı')
@@ -49,11 +119,6 @@ const commands = [
     .setName('rütbe-terfi')
     .setDescription('Kullanıcıya 1 seviye terfi verir')
     .addStringOption(option =>
-      option.setName('yonetici_roblox_nick')
-        .setDescription('Kendi Roblox kullanıcı adınız (yetki kontrolü için)')
-        .setRequired(true)
-    )
-    .addStringOption(option =>
       option.setName('roblox_nick')
         .setDescription('Terfi edilecek kişinin Roblox kullanıcı adı')
         .setRequired(true)
@@ -62,11 +127,6 @@ const commands = [
   new SlashCommandBuilder()
     .setName('rütbe-tenzil')
     .setDescription('Kullanıcıya 1 seviye tenzil verir')
-    .addStringOption(option =>
-      option.setName('yonetici_roblox_nick')
-        .setDescription('Kendi Roblox kullanıcı adınız (yetki kontrolü için)')
-        .setRequired(true)
-    )
     .addStringOption(option =>
       option.setName('roblox_nick')
         .setDescription('Tenzil edilecek kişinin Roblox kullanıcı adı')
@@ -93,7 +153,16 @@ const commands = [
   
   new SlashCommandBuilder()
     .setName('aktiflik-sorgu')
-    .setDescription('Grup oyununun aktifliğini sorgular')
+    .setDescription('Grup oyununun aktifliğini sorgular'),
+  
+  new SlashCommandBuilder()
+    .setName('roblox-bağla')
+    .setDescription('Discord hesabınızı Roblox hesabınıza bağlar')
+    .addStringOption(option =>
+      option.setName('roblox_nick')
+        .setDescription('Roblox kullanıcı adınız')
+        .setRequired(true)
+    )
 ].map(command => command.toJSON());
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
@@ -105,16 +174,16 @@ const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
       Routes.applicationCommands(DISCORD_CLIENT_ID),
       { body: commands }
     );
-    console.log('✅ Slash komutları başarıyla kaydedildi!');
+    console.log('Slash komutları başarıyla kaydedildi');
   } catch (error) {
     console.error('Komut kaydı hatası:', error);
   }
 })();
 
 client.on('ready', () => {
-  console.log(`✅ ${client.user.tag} olarak giriş yapıldı!`);
-  console.log(`📊 Grup ID: ${config.groupId}`);
-  console.log(`🎮 Oyun ID: ${config.gameId}`);
+  console.log(`${client.user.tag} olarak giriş yapıldı`);
+  console.log(`Grup ID: ${config.groupId}`);
+  console.log(`Oyun ID: ${config.gameId}`);
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -145,19 +214,30 @@ client.on('interactionCreate', async (interaction) => {
       case 'aktiflik-sorgu':
         await handleActivityQuery(interaction);
         break;
+      case 'roblox-bağla':
+        await handleRobloxLink(interaction);
+        break;
     }
   } catch (error) {
     console.error(`Komut hatası (${commandName}):`, error);
-    await interaction.reply({ content: '❌ Bir hata oluştu!', ephemeral: true });
+    await interaction.reply({ content: 'HATA: Bir hata oluştu!', ephemeral: true });
   }
 });
 
-async function checkRankPermissions(managerUsername, targetRank) {
+async function checkRankPermissions(discordUserId, targetRank) {
+  const managerUsername = getLinkedRobloxUsername(discordUserId);
+  if (!managerUsername) {
+    return { 
+      allowed: false, 
+      message: 'HATA: Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.' 
+    };
+  }
+
   const managerId = await robloxAPI.getUserIdByUsername(managerUsername);
   if (!managerId) {
     return { 
       allowed: false, 
-      message: '❌ Yönetici Roblox kullanıcı adı bulunamadı!' 
+      message: 'HATA: Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.' 
     };
   }
 
@@ -165,14 +245,14 @@ async function checkRankPermissions(managerUsername, targetRank) {
   if (!managerRank) {
     return { 
       allowed: false, 
-      message: '❌ Grupta olmayan kişiler rütbe veremez!' 
+      message: 'HATA: Grupta olmayan kişiler rütbe veremez!' 
     };
   }
 
   if (managerRank.rank < config.minRankToManage) {
     return { 
       allowed: false, 
-      message: `❌ Rütbe vermek için en az ${config.minRankToManage} seviye rütbeye sahip olmalısınız! (Sizin rütbeniz: ${managerRank.rank})` 
+      message: `HATA: Rütbe vermek için en az ${config.minRankToManage} seviye rütbeye sahip olmalısınız! (Sizin rütbeniz: ${managerRank.rank})` 
     };
   }
 
@@ -181,13 +261,14 @@ async function checkRankPermissions(managerUsername, targetRank) {
   if (targetRank > maxAllowedRank) {
     return { 
       allowed: false, 
-      message: `❌ En fazla ${maxAllowedRank} seviye rütbe verebilirsiniz! (Hedef rütbe: ${targetRank})` 
+      message: `HATA: En fazla ${maxAllowedRank} seviye rütbe verebilirsiniz! (Hedef rütbe: ${targetRank})` 
     };
   }
 
   return { 
     allowed: true, 
     managerRank: managerRank,
+    managerUsername: managerUsername,
     maxAllowedRank: maxAllowedRank 
   };
 }
@@ -199,26 +280,26 @@ async function handleRankQuery(interaction) {
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('❌ Kullanıcı bulunamadı!');
+    return interaction.editReply('HATA: Kullanıcı bulunamadı!');
   }
   
   const userInfo = await robloxAPI.getUserInfo(userId);
   const rankInfo = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   
   if (!rankInfo) {
-    return interaction.editReply('❌ Kullanıcı grupta değil!');
+    return interaction.editReply('HATA: Kullanıcı grupta değil!');
   }
   
   const embed = new EmbedBuilder()
-    .setTitle('📊 Rütbe Sorgu')
-    .setDescription(`**${robloxNick}** adlı kullanıcının rütbe bilgileri`)
+    .setTitle('Rütbe Sorgusu')
+    .setDescription(`**${robloxNick}** kullanıcısının rütbe bilgileri`)
     .addFields(
-      { name: '👤 Roblox Kullanıcı Adı', value: userInfo.name, inline: true },
-      { name: '🆔 Roblox ID', value: userId.toString(), inline: true },
-      { name: '⭐ Rütbe', value: rankInfo.name, inline: true },
-      { name: '🔢 Rütbe Seviyesi', value: rankInfo.rank.toString(), inline: true }
+      { name: 'Roblox Kullanıcı Adı', value: userInfo.name, inline: true },
+      { name: 'Roblox ID', value: userId.toString(), inline: true },
+      { name: 'Rütbe', value: rankInfo.name, inline: true },
+      { name: 'Rütbe Seviyesi', value: rankInfo.rank.toString(), inline: true }
     )
-    .setColor(0x00FF00)
+    .setColor(0x5865F2)
     .setTimestamp();
   
   await interaction.editReply({ embeds: [embed] });
@@ -227,27 +308,26 @@ async function handleRankQuery(interaction) {
 async function handleRankChange(interaction) {
   await interaction.deferReply();
   
-  const managerRobloxNick = interaction.options.getString('yonetici_roblox_nick');
   const robloxNick = interaction.options.getString('roblox_nick');
   const targetRankName = interaction.options.getString('rütbe');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('❌ Hedef kullanıcı bulunamadı!');
+    return interaction.editReply('HATA: Hedef kullanıcı bulunamadı!');
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
-    return interaction.editReply('❌ Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
+    return interaction.editReply('HATA: Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
   }
   
   const targetRole = roles.find(r => r.name.toLowerCase() === targetRankName.toLowerCase());
   
   if (!targetRole) {
-    return interaction.editReply('❌ Belirtilen rütbe bulunamadı!');
+    return interaction.editReply('HATA: Belirtilen rütbe bulunamadı!');
   }
   
-  const permissionCheck = await checkRankPermissions(managerRobloxNick, targetRole.rank);
+  const permissionCheck = await checkRankPermissions(interaction.user.id, targetRole.rank);
   if (!permissionCheck.allowed) {
     return interaction.editReply(permissionCheck.message);
   }
@@ -256,53 +336,52 @@ async function handleRankChange(interaction) {
   
   if (result) {
     const embed = new EmbedBuilder()
-      .setTitle('✅ Rütbe Değiştirildi')
-      .setDescription(`**${robloxNick}** adlı kullanıcının rütbesi değiştirildi`)
+      .setTitle('Rütbe Değiştirildi')
+      .setDescription(`**${robloxNick}** kullanıcısının rütbesi başarıyla değiştirildi`)
       .addFields(
-        { name: '👤 Yönetici', value: `${managerRobloxNick} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
-        { name: '🆕 Yeni Rütbe', value: targetRole.name, inline: true },
-        { name: '🔢 Rütbe Seviyesi', value: targetRole.rank.toString(), inline: true }
+        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
+        { name: 'Yeni Rütbe', value: targetRole.name, inline: true },
+        { name: 'Rütbe Seviyesi', value: targetRole.rank.toString(), inline: true }
       )
-      .setColor(0x0099FF)
+      .setColor(0x57F287)
       .setTimestamp();
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('❌ Rütbe değiştirilemedi! Cookie kontrolü yapın.');
+    await interaction.editReply('HATA: Rütbe değiştirilemedi! Cookie kontrolü yapın.');
   }
 }
 
 async function handleRankPromotion(interaction) {
   await interaction.deferReply();
   
-  const managerRobloxNick = interaction.options.getString('yonetici_roblox_nick');
   const robloxNick = interaction.options.getString('roblox_nick');
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('❌ Hedef kullanıcı bulunamadı!');
+    return interaction.editReply('HATA: Hedef kullanıcı bulunamadı!');
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!currentRank) {
-    return interaction.editReply('❌ Kullanıcı grupta değil!');
+    return interaction.editReply('HATA: Kullanıcı grupta değil!');
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
-    return interaction.editReply('❌ Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
+    return interaction.editReply('HATA: Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
   }
   
   const sortedRoles = roles.sort((a, b) => a.rank - b.rank);
   const currentIndex = sortedRoles.findIndex(r => r.rank === currentRank.rank);
   
   if (currentIndex === sortedRoles.length - 1) {
-    return interaction.editReply('❌ Kullanıcı zaten en üst rütbede!');
+    return interaction.editReply('HATA: Kullanıcı zaten en üst rütbede!');
   }
   
   const nextRole = sortedRoles[currentIndex + 1];
   
-  const permissionCheck = await checkRankPermissions(managerRobloxNick, nextRole.rank);
+  const permissionCheck = await checkRankPermissions(interaction.user.id, nextRole.rank);
   if (!permissionCheck.allowed) {
     return interaction.editReply(permissionCheck.message);
   }
@@ -311,53 +390,52 @@ async function handleRankPromotion(interaction) {
   
   if (result) {
     const embed = new EmbedBuilder()
-      .setTitle('⬆️ Terfi Edildi')
-      .setDescription(`**${robloxNick}** terfi edildi`)
+      .setTitle('Terfi İşlemi')
+      .setDescription(`**${robloxNick}** kullanıcısı başarıyla terfi edildi`)
       .addFields(
-        { name: '👤 Yönetici', value: `${managerRobloxNick} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
-        { name: '📉 Eski Rütbe', value: currentRank.name, inline: true },
-        { name: '📈 Yeni Rütbe', value: nextRole.name, inline: true }
+        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
+        { name: 'Eski Rütbe', value: currentRank.name, inline: true },
+        { name: 'Yeni Rütbe', value: nextRole.name, inline: true }
       )
-      .setColor(0x00FF00)
+      .setColor(0x57F287)
       .setTimestamp();
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('❌ Terfi işlemi başarısız!');
+    await interaction.editReply('HATA: Terfi işlemi başarısız!');
   }
 }
 
 async function handleRankDemotion(interaction) {
   await interaction.deferReply();
   
-  const managerRobloxNick = interaction.options.getString('yonetici_roblox_nick');
   const robloxNick = interaction.options.getString('roblox_nick');
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('❌ Hedef kullanıcı bulunamadı!');
+    return interaction.editReply('HATA: Hedef kullanıcı bulunamadı!');
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!currentRank) {
-    return interaction.editReply('❌ Kullanıcı grupta değil!');
+    return interaction.editReply('HATA: Kullanıcı grupta değil!');
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
-    return interaction.editReply('❌ Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
+    return interaction.editReply('HATA: Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
   }
   
   const sortedRoles = roles.sort((a, b) => a.rank - b.rank);
   const currentIndex = sortedRoles.findIndex(r => r.rank === currentRank.rank);
   
   if (currentIndex === 0) {
-    return interaction.editReply('❌ Kullanıcı zaten en alt rütbede!');
+    return interaction.editReply('HATA: Kullanıcı zaten en alt rütbede!');
   }
   
   const prevRole = sortedRoles[currentIndex - 1];
   
-  const permissionCheck = await checkRankPermissions(managerRobloxNick, currentRank.rank);
+  const permissionCheck = await checkRankPermissions(interaction.user.id, prevRole.rank);
   if (!permissionCheck.allowed) {
     return interaction.editReply(permissionCheck.message);
   }
@@ -366,25 +444,25 @@ async function handleRankDemotion(interaction) {
   
   if (result) {
     const embed = new EmbedBuilder()
-      .setTitle('⬇️ Tenzil Edildi')
-      .setDescription(`**${robloxNick}** tenzil edildi`)
+      .setTitle('Tenzil İşlemi')
+      .setDescription(`**${robloxNick}** kullanıcısı tenzil edildi`)
       .addFields(
-        { name: '👤 Yönetici', value: `${managerRobloxNick} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
-        { name: '📈 Eski Rütbe', value: currentRank.name, inline: true },
-        { name: '📉 Yeni Rütbe', value: prevRole.name, inline: true }
+        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
+        { name: 'Eski Rütbe', value: currentRank.name, inline: true },
+        { name: 'Yeni Rütbe', value: prevRole.name, inline: true }
       )
-      .setColor(0xFF0000)
+      .setColor(0xED4245)
       .setTimestamp();
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('❌ Tenzil işlemi başarısız!');
+    await interaction.editReply('HATA: Tenzil işlemi başarısız!');
   }
 }
 
 async function handleBan(interaction) {
   if (!interaction.member.roles.cache.has(config.adminRoleId)) {
-    return interaction.reply({ content: '❌ Bu komutu kullanma yetkiniz yok!', ephemeral: true });
+    return interaction.reply({ content: 'HATA: Bu komutu kullanma yetkiniz yok!', ephemeral: true });
   }
   
   await interaction.deferReply();
@@ -396,25 +474,25 @@ async function handleBan(interaction) {
     await interaction.guild.members.ban(discordUserId, { reason: 'Admin komutu ile yasaklandı' });
     
     const embed = new EmbedBuilder()
-      .setTitle('🚫 Kullanıcı Yasaklandı')
-      .setDescription(`**${user.tag}** Discord sunucusundan yasaklandı`)
+      .setTitle('Kullanıcı Yasaklandı')
+      .setDescription(`**${user.tag}** sunucudan yasaklandı`)
       .addFields(
-        { name: '👤 Yasaklanan', value: user.tag, inline: true },
-        { name: '🆔 Discord ID', value: discordUserId, inline: true }
+        { name: 'Yasaklanan Kullanıcı', value: user.tag, inline: true },
+        { name: 'Discord ID', value: discordUserId, inline: true }
       )
-      .setColor(0xFF0000)
+      .setColor(0xED4245)
       .setTimestamp();
     
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Yasaklama hatası:', error);
-    await interaction.editReply('❌ Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin veya botun yetkileri eksik olabilir.');
+    await interaction.editReply('HATA: Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin veya botun yetkileri eksik olabilir.');
   }
 }
 
 async function handleUnban(interaction) {
   if (!interaction.member.roles.cache.has(config.adminRoleId)) {
-    return interaction.reply({ content: '❌ Bu komutu kullanma yetkiniz yok!', ephemeral: true });
+    return interaction.reply({ content: 'HATA: Bu komutu kullanma yetkiniz yok!', ephemeral: true });
   }
   
   await interaction.deferReply();
@@ -425,18 +503,18 @@ async function handleUnban(interaction) {
     await interaction.guild.members.unban(discordUserId, 'Admin komutu ile yasak kaldırıldı');
     
     const embed = new EmbedBuilder()
-      .setTitle('✅ Yasak Kaldırıldı')
-      .setDescription(`Discord ID: **${discordUserId}** olan kullanıcının yasağı kaldırıldı`)
+      .setTitle('Yasak Kaldırıldı')
+      .setDescription(`**${discordUserId}** ID'li kullanıcının yasağı kaldırıldı`)
       .addFields(
-        { name: '🆔 Discord ID', value: discordUserId, inline: true }
+        { name: 'Discord ID', value: discordUserId, inline: true }
       )
-      .setColor(0x00FF00)
+      .setColor(0x57F287)
       .setTimestamp();
     
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Yasak kaldırma hatası:', error);
-    await interaction.editReply('❌ Yasak kaldırılamadı! Kullanıcı ID\'sini kontrol edin veya kullanıcı zaten yasaklı değil.');
+    await interaction.editReply('HATA: Yasak kaldırılamadı! Kullanıcı ID\'sini kontrol edin veya kullanıcı zaten yasaklı değil.');
   }
 }
 
@@ -446,21 +524,99 @@ async function handleActivityQuery(interaction) {
   const activity = await robloxAPI.getGameActivity(config.gameId);
   
   if (!activity) {
-    return interaction.editReply('❌ Oyun bilgisi alınamadı!');
+    return interaction.editReply('HATA: Oyun bilgisi alınamadı!');
   }
   
   const embed = new EmbedBuilder()
-    .setTitle('📊 Oyun Aktifliği')
-    .setDescription(`**${activity.name}** oyun istatistikleri`)
+    .setTitle('Oyun Aktifliği')
+    .setDescription(`**${activity.name}** istatistikleri`)
     .addFields(
-      { name: '🎮 Şu An Oynayan', value: activity.playing.toString(), inline: true },
-      { name: '👥 Maksimum Oyuncu', value: activity.maxPlayers.toString(), inline: true },
-      { name: '📈 Toplam Ziyaret', value: activity.visits.toLocaleString(), inline: true }
+      { name: 'Şu An Oynayan', value: activity.playing.toString(), inline: true },
+      { name: 'Maksimum Oyuncu', value: activity.maxPlayers.toString(), inline: true },
+      { name: 'Toplam Ziyaret', value: activity.visits.toLocaleString(), inline: true }
     )
-    .setColor(0x0099FF)
+    .setColor(0x5865F2)
     .setTimestamp();
   
   await interaction.editReply({ embeds: [embed] });
+}
+
+async function handleRobloxLink(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+  
+  cleanExpiredVerifications();
+  
+  const robloxNick = interaction.options.getString('roblox_nick');
+  const discordUserId = interaction.user.id;
+  
+  const userId = await robloxAPI.getUserIdByUsername(robloxNick);
+  if (!userId) {
+    return interaction.editReply('HATA: Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.');
+  }
+  
+  const rankInfo = await robloxAPI.getUserRankInGroup(userId, config.groupId);
+  if (!rankInfo) {
+    return interaction.editReply('HATA: Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.');
+  }
+  
+  // Bekleyen doğrulama var mı kontrol et
+  const pendingVerifications = loadPendingVerifications();
+  const pendingVerification = pendingVerifications[discordUserId];
+  
+  // Eğer bekleyen doğrulama varsa, kodu kontrol et
+  if (pendingVerification) {
+    const isVerified = await robloxAPI.verifyUserOwnership(userId, pendingVerification.code);
+    
+    if (isVerified) {
+      // Doğrulama başarılı - hesabı bağla
+      const links = loadAccountLinks();
+      links[discordUserId] = robloxNick;
+      
+      // Bekleyen doğrulamayı sil
+      delete pendingVerifications[discordUserId];
+      savePendingVerifications(pendingVerifications);
+      
+      if (saveAccountLinks(links)) {
+        const embed = new EmbedBuilder()
+          .setTitle('Hesap Bağlandı')
+          .setDescription('Discord hesabınız Roblox hesabınıza başarıyla bağlandı')
+          .addFields(
+            { name: 'Discord Kullanıcısı', value: interaction.user.tag, inline: true },
+            { name: 'Roblox Kullanıcısı', value: robloxNick, inline: true },
+            { name: 'Rütbe', value: `${rankInfo.name} (Seviye ${rankInfo.rank})`, inline: true }
+          )
+          .setColor(0x57F287)
+          .setTimestamp();
+        
+        return interaction.editReply({ embeds: [embed] });
+      } else {
+        return interaction.editReply('HATA: Hesap bağlantısı kaydedilemedi! Lütfen tekrar deneyin.');
+      }
+    }
+  }
+  
+  // Yeni doğrulama kodu oluştur
+  const verificationCode = generateVerificationCode();
+  pendingVerifications[discordUserId] = {
+    code: verificationCode,
+    robloxUsername: robloxNick,
+    timestamp: Date.now()
+  };
+  savePendingVerifications(pendingVerifications);
+  
+  const verificationEmbed = new EmbedBuilder()
+    .setTitle('Hesap Doğrulama Gerekli')
+    .setDescription('Hesabınızı bağlamak için Roblox profil açıklamanıza aşağıdaki doğrulama kodunu eklemeniz gerekiyor.')
+    .addFields(
+      { name: 'Adım 1', value: 'Roblox profilinize gidin', inline: false },
+      { name: 'Adım 2', value: `Profil açıklamanıza şu doğrulama kodunu ekleyin:\n\`\`\`${verificationCode}\`\`\``, inline: false },
+      { name: 'Adım 3', value: 'Kaydedin ve tekrar `/roblox-bağla` komutunu kullanın', inline: false },
+      { name: 'Not', value: 'Bu kod 10 dakika süreyle geçerlidir', inline: false }
+    )
+    .setColor(0xFEE75C)
+    .setTimestamp();
+  
+  return interaction.editReply({ embeds: [verificationEmbed] });
 }
 
 client.login(DISCORD_TOKEN);

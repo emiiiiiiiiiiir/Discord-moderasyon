@@ -49,12 +49,20 @@ Discord Developer Portal'da botunuza şu yetkileri verin:
 
 ## 📋 Komutlar
 
+### Hesap Bağlama Komutu
+
+- `/roblox-bağla <roblox_nick>` - Discord hesabınızı Roblox hesabınıza bağlar
+  - **Güvenlik:** Bot size benzersiz bir doğrulama kodu verecek
+  - Bu kodu Roblox profil açıklamanıza ekleyip komutu tekrar çalıştırmanız gerekir
+  - Kod 10 dakika süreyle geçerlidir ve tek kullanımlıktır
+  - Bot size adım adım talimatları gösterecektir
+
 ### Rütbe Komutları (Roblox Rütbe Bazlı Yetki Sistemi)
 
 - `/rütbe-sorgu <roblox_nick>` - Kullanıcının Roblox grubundaki rütbesini gösterir
-- `/rütbe-değiştir <yonetici_roblox_nick> <roblox_nick> <rütbe>` - Kullanıcının rütbesini değiştirir (Rütbe yetkisi gerekir)
-- `/rütbe-terfi <yonetici_roblox_nick> <roblox_nick>` - Kullanıcıya 1 seviye terfi verir (Rütbe yetkisi gerekir)
-- `/rütbe-tenzil <yonetici_roblox_nick> <roblox_nick>` - Kullanıcıya 1 seviye tenzil verir (Rütbe yetkisi gerekir)
+- `/rütbe-değiştir <roblox_nick> <rütbe>` - Kullanıcının rütbesini değiştirir (Hesap bağlama ve rütbe yetkisi gerekir)
+- `/rütbe-terfi <roblox_nick>` - Kullanıcıya 1 seviye terfi verir (Hesap bağlama ve rütbe yetkisi gerekir)
+- `/rütbe-tenzil <roblox_nick>` - Kullanıcıya 1 seviye tenzil verir (Hesap bağlama ve rütbe yetkisi gerekir)
 
 ### Discord Yasaklama Komutları (Discord User ID ile)
 
@@ -68,10 +76,18 @@ Discord Developer Portal'da botunuza şu yetkileri verin:
 ## 🔧 Kullanım Notları
 
 ### Rütbe Yönetimi Sistemi
-- Rütbe verme komutları artık **Roblox rütbe seviyesine** göre çalışır
-- Rütbe vermek için kullanıcının Roblox grubunda `minRankToManage` değerinden yüksek rütbesi olmalıdır
-- Yöneticiler sadece kendi rütbelerinden düşük veya `maxRankCanAssign` değerinden düşük rütbeleri verebilir
-- Her rütbe komutu için kendi Roblox kullanıcı adınızı girmeniz gerekir (yetki kontrolü için)
+- **Hesap Bağlama (Zorunlu):** 
+  - Rütbe verme komutlarını kullanmadan önce `/roblox-bağla` komutu ile Discord hesabınızı Roblox hesabınıza bağlamalısınız
+  - Hesap doğrulaması için benzersiz bir doğrulama kodu alacaksınız
+  - Bu kodu Roblox profil açıklamanıza ekleyip komutu tekrar çalıştırmalısınız
+  - Her doğrulama kodu tek kullanımlık ve 10 dakika süreyle geçerlidir
+  - Bu sayede kimse başkasının hesabını kullanarak yetki alamaz
+  
+- **Yetki Sistemi:**
+  - Rütbe verme komutları **Roblox rütbe seviyesine** göre çalışır
+  - Rütbe vermek için kullanıcının Roblox grubunda `minRankToManage` değerinden yüksek rütbesi olmalıdır
+  - Yöneticiler sadece kendi rütbelerinden düşük veya `maxRankCanAssign` değerinden düşük rütbeleri verebilir
+  - Sistem, Discord kullanıcı ID'nizi kullanarak bağlı Roblox hesabınızdan yetki kontrolü yapar
 
 ### Diğer Notlar
 - Discord yasaklama komutları için `adminRoleId` rolüne sahip olmanız gerekir

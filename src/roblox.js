@@ -166,6 +166,22 @@ class RobloxAPI {
       return null;
     }
   }
+
+  // Kullanıcının profil açıklamasını kontrol et
+  async verifyUserOwnership(userId, verificationCode) {
+    try {
+      const userInfo = await this.getUserInfo(userId);
+      if (!userInfo || !userInfo.description) {
+        return false;
+      }
+      
+      // Profil açıklamasında doğrulama kodunu ara
+      return userInfo.description.includes(verificationCode);
+    } catch (error) {
+      console.error('Hesap doğrulama hatası:', error.message);
+      return false;
+    }
+  }
 }
 
 module.exports = new RobloxAPI();

@@ -72,6 +72,26 @@ class RobloxAPI {
       );
       return response.data;
     } catch (error) {
+      if (error.response?.status === 403 && error.response?.headers['x-csrf-token']) {
+        const csrfToken = error.response.headers['x-csrf-token'];
+        try {
+          const retryResponse = await axios.patch(
+            `${this.groupsURL}/v1/groups/${groupId}/users/${userId}`,
+            { roleId: roleId },
+            {
+              headers: {
+                'Cookie': `.ROBLOSECURITY=${cookie}`,
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+              }
+            }
+          );
+          return retryResponse.data;
+        } catch (retryError) {
+          console.error('Rütbe değiştirme hatası (retry):', retryError.response?.data || retryError.message);
+          return null;
+        }
+      }
       console.error('Rütbe değiştirme hatası:', error.response?.data || error.message);
       return null;
     }
@@ -90,6 +110,24 @@ class RobloxAPI {
       );
       return true;
     } catch (error) {
+      if (error.response?.status === 403 && error.response?.headers['x-csrf-token']) {
+        const csrfToken = error.response.headers['x-csrf-token'];
+        try {
+          const retryResponse = await axios.delete(
+            `${this.groupsURL}/v1/groups/${groupId}/users/${userId}`,
+            {
+              headers: {
+                'Cookie': `.ROBLOSECURITY=${cookie}`,
+                'X-CSRF-TOKEN': csrfToken
+              }
+            }
+          );
+          return true;
+        } catch (retryError) {
+          console.error('Yasaklama hatası (retry):', retryError.response?.data || retryError.message);
+          return false;
+        }
+      }
       console.error('Yasaklama hatası:', error.response?.data || error.message);
       return false;
     }

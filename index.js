@@ -6,7 +6,9 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildBans
   ]
 });
 
@@ -58,19 +60,19 @@ const commands = [
   
   new SlashCommandBuilder()
     .setName('tam-yasakla')
-    .setDescription('Kullanıcıyı tüm sunuculardan yasaklar')
+    .setDescription('Kullanıcıyı Discord sunucusundan yasaklar')
     .addStringOption(option =>
-      option.setName('roblox_nick')
-        .setDescription('Roblox kullanıcı adı')
+      option.setName('kullanici_id')
+        .setDescription('Discord kullanıcı ID\'si')
         .setRequired(true)
     ),
   
   new SlashCommandBuilder()
     .setName('tam-yasak-kaldır')
-    .setDescription('Kullanıcının tüm sunuculardan yasağını kaldırır')
+    .setDescription('Kullanıcının Discord sunucusundan yasağını kaldırır')
     .addStringOption(option =>
-      option.setName('roblox_nick')
-        .setDescription('Roblox kullanıcı adı')
+      option.setName('kullanici_id')
+        .setDescription('Discord kullanıcı ID\'si')
         .setRequired(true)
     ),
   
@@ -183,6 +185,10 @@ async function handleRankChange(interaction) {
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
+  if (!roles) {
+    return interaction.editReply('❌ Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
+  }
+  
   const targetRole = roles.find(r => r.name.toLowerCase() === targetRankName.toLowerCase());
   
   if (!targetRole) {
@@ -228,6 +234,10 @@ async function handleRankPromotion(interaction) {
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
+  if (!roles) {
+    return interaction.editReply('❌ Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
+  }
+  
   const sortedRoles = roles.sort((a, b) => a.rank - b.rank);
   const currentIndex = sortedRoles.findIndex(r => r.rank === currentRank.rank);
   
@@ -275,6 +285,10 @@ async function handleRankDemotion(interaction) {
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
+  if (!roles) {
+    return interaction.editReply('❌ Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
+  }
+  
   const sortedRoles = roles.sort((a, b) => a.rank - b.rank);
   const currentIndex = sortedRoles.findIndex(r => r.rank === currentRank.rank);
   
@@ -309,29 +323,26 @@ async function handleBan(interaction) {
   
   await interaction.deferReply();
   
-  const robloxNick = interaction.options.getString('roblox_nick');
-  const userId = await robloxAPI.getUserIdByUsername(robloxNick);
+  const discordUserId = interaction.options.getString('kullanici_id');
   
-  if (!userId) {
-    return interaction.editReply('❌ Kullanıcı bulunamadı!');
-  }
-  
-  const result = await robloxAPI.banUserFromGroup(userId, config.groupId, ROBLOX_COOKIE);
-  
-  if (result) {
+  try {
+    const user = await client.users.fetch(discordUserId);
+    await interaction.guild.members.ban(discordUserId, { reason: 'Admin komutu ile yasaklandı' });
+    
     const embed = new EmbedBuilder()
       .setTitle('🚫 Kullanıcı Yasaklandı')
-      .setDescription(`**${robloxNick}** tüm sunuculardan yasaklandı`)
+      .setDescription(`**${user.tag}** Discord sunucusundan yasaklandı`)
       .addFields(
-        { name: '👤 Yasaklanan', value: robloxNick, inline: true },
-        { name: '🆔 Roblox ID', value: userId.toString(), inline: true }
+        { name: '👤 Yasaklanan', value: user.tag, inline: true },
+        { name: '🆔 Discord ID', value: discordUserId, inline: true }
       )
       .setColor(0xFF0000)
       .setTimestamp();
     
     await interaction.editReply({ embeds: [embed] });
-  } else {
-    await interaction.editReply('❌ Yasaklama işlemi başarısız!');
+  } catch (error) {
+    console.error('Yasaklama hatası:', error);
+    await interaction.editReply('❌ Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin veya botun yetkileri eksik olabilir.');
   }
 }
 
@@ -342,9 +353,25 @@ async function handleUnban(interaction) {
   
   await interaction.deferReply();
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const discordUserId = interaction.options.getString('kullanici_id');
   
-  await interaction.editReply('⚠️ Yasak kaldırma işlemi Roblox API\'sinde manuel yapılmalıdır. Kullanıcıyı gruba tekrar davet edin.');
+  try {
+    await interaction.guild.members.unban(discordUserId, 'Admin komutu ile yasak kaldırıldı');
+    
+    const embed = new EmbedBuilder()
+      .setTitle('✅ Yasak Kaldırıldı')
+      .setDescription(`Discord ID: **${discordUserId}** olan kullanıcının yasağı kaldırıldı`)
+      .addFields(
+        { name: '🆔 Discord ID', value: discordUserId, inline: true }
+      )
+      .setColor(0x00FF00)
+      .setTimestamp();
+    
+    await interaction.editReply({ embeds: [embed] });
+  } catch (error) {
+    console.error('Yasak kaldırma hatası:', error);
+    await interaction.editReply('❌ Yasak kaldırılamadı! Kullanıcı ID\'sini kontrol edin veya kullanıcı zaten yasaklı değil.');
+  }
 }
 
 async function handleActivityQuery(interaction) {

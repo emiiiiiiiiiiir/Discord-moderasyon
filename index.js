@@ -180,7 +180,7 @@ const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
   }
 })();
 
-client.on('ready', () => {
+client.on('clientReady', () => {
   console.log(`${client.user.tag} olarak giriş yapıldı`);
   console.log(`Grup ID: ${config.groupId}`);
   console.log(`Oyun ID: ${config.gameId}`);
@@ -220,7 +220,14 @@ client.on('interactionCreate', async (interaction) => {
     }
   } catch (error) {
     console.error(`Komut hatası (${commandName}):`, error);
-    await interaction.reply({ content: 'HATA: Bir hata oluştu!', ephemeral: true });
+    
+    const errorMessage = { content: 'HATA: Bir hata oluştu!', ephemeral: true };
+    
+    if (interaction.deferred || interaction.replied) {
+      await interaction.editReply(errorMessage.content);
+    } else {
+      await interaction.reply(errorMessage);
+    }
   }
 });
 

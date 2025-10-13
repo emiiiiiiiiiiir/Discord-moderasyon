@@ -9,7 +9,17 @@ The bot provides comprehensive management features:
 - Discord user ban/unban using Discord user IDs
 - Game activity monitoring for the group's Roblox game
 
-**Recent Changes (October 12, 2025)**:
+**Recent Changes**:
+
+*October 13, 2025*:
+- **Account Linking System Enhancement**: Improved Roblox account linking with one-time binding
+- `/roblox-bağla` command now only works once - prevents re-linking if account is already bound
+- Added new `/roblox-değiştir` command to allow users to change their linked Roblox account
+- Both commands use the same secure verification system (profile description code)
+- Updated error handling to properly handle deferred/replied interactions
+
+*October 12, 2025*:
+- **Discord.js Deprecation Fix**: Updated `ready` event to `clientReady` for v15 compatibility
 - **Roblox Rank-Based Permission System**: Completely redesigned the rank management system to use Roblox group ranks instead of Discord roles for permissions
 - Added `checkRankPermissions()` helper function to validate manager's Roblox rank before allowing rank changes
 - Updated all rank management commands (`/rütbe-değiştir`, `/rütbe-terfi`, `/rütbe-tenzil`) to require manager's Roblox username for permission verification

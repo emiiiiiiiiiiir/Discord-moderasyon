@@ -13,7 +13,7 @@ The bot provides comprehensive management features:
 
 *October 13, 2025*:
 - **Rank Permission System Update**: Changed rank management permissions to use specific rank levels
-- Only ranks 35, 36, 37, and 38 can now perform rank management operations
+- Only ranks 35, 36, 37, 38, 39, and 255 can now perform rank management operations
 - Removed `minRankToManage` parameter in favor of `allowedRanks` whitelist
 - **Account Linking System Enhancement**: Improved Roblox account linking with one-time binding
 - `/roblox-bağla` command now only works once - prevents re-linking if account is already bound

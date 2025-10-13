@@ -268,10 +268,11 @@ async function checkRankPermissions(discordUserId, targetRank) {
     };
   }
 
-  if (managerRank.rank < config.minRankToManage) {
+  // İzinli rütbe seviyelerini kontrol et
+  if (config.allowedRanks && !config.allowedRanks.includes(managerRank.rank)) {
     return { 
       allowed: false, 
-      message: `HATA: Rütbe vermek için en az ${config.minRankToManage} seviye rütbeye sahip olmalısınız! (Sizin rütbeniz: ${managerRank.rank})` 
+      message: `HATA: Sadece ${config.allowedRanks.join(', ')} seviye rütbeler rütbe işlemi yapabilir! (Sizin rütbeniz: ${managerRank.rank})` 
     };
   }
 

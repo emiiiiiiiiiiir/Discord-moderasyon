@@ -162,6 +162,15 @@ const commands = [
       option.setName('roblox_nick')
         .setDescription('Roblox kullanıcı adınız')
         .setRequired(true)
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('roblox-değiştir')
+    .setDescription('Bağlı Roblox hesabınızı değiştirir')
+    .addStringOption(option =>
+      option.setName('roblox_nick')
+        .setDescription('Yeni Roblox kullanıcı adınız')
+        .setRequired(true)
     )
 ].map(command => command.toJSON());
 
@@ -216,6 +225,9 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'roblox-bağla':
         await handleRobloxLink(interaction);
+        break;
+      case 'roblox-değiştir':
+        await handleRobloxChange(interaction);
         break;
     }
   } catch (error) {
@@ -553,8 +565,15 @@ async function handleRobloxLink(interaction) {
   
   cleanExpiredVerifications();
   
-  const robloxNick = interaction.options.getString('roblox_nick');
   const discordUserId = interaction.user.id;
+  
+  // Hesap zaten bağlı mı kontrol et
+  const existingLink = getLinkedRobloxUsername(discordUserId);
+  if (existingLink) {
+    return interaction.editReply(`HATA: Discord hesabınız zaten **${existingLink}** kullanıcısına bağlı! Hesabınızı değiştirmek için \`/roblox-değiştir\` komutunu kullanın.`);
+  }
+  
+  const robloxNick = interaction.options.getString('roblox_nick');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
@@ -618,6 +637,95 @@ async function handleRobloxLink(interaction) {
       { name: 'Adım 1', value: 'Roblox profilinize gidin', inline: false },
       { name: 'Adım 2', value: `Profil açıklamanıza şu doğrulama kodunu ekleyin:\n\`\`\`${verificationCode}\`\`\``, inline: false },
       { name: 'Adım 3', value: 'Kaydedin ve tekrar `/roblox-bağla` komutunu kullanın', inline: false },
+      { name: 'Not', value: 'Bu kod 10 dakika süreyle geçerlidir', inline: false }
+    )
+    .setColor(0xFEE75C)
+    .setTimestamp();
+  
+  return interaction.editReply({ embeds: [verificationEmbed] });
+}
+
+async function handleRobloxChange(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+  
+  cleanExpiredVerifications();
+  
+  const discordUserId = interaction.user.id;
+  
+  // Hesap bağlı mı kontrol et
+  const existingLink = getLinkedRobloxUsername(discordUserId);
+  if (!existingLink) {
+    return interaction.editReply('HATA: Discord hesabınız henüz bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanın.');
+  }
+  
+  const robloxNick = interaction.options.getString('roblox_nick');
+  
+  const userId = await robloxAPI.getUserIdByUsername(robloxNick);
+  if (!userId) {
+    return interaction.editReply('HATA: Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.');
+  }
+  
+  const rankInfo = await robloxAPI.getUserRankInGroup(userId, config.groupId);
+  if (!rankInfo) {
+    return interaction.editReply('HATA: Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.');
+  }
+  
+  // Bekleyen doğrulama var mı kontrol et
+  const pendingVerifications = loadPendingVerifications();
+  const pendingVerification = pendingVerifications[discordUserId];
+  
+  // Eğer bekleyen doğrulama varsa, kodu kontrol et
+  if (pendingVerification) {
+    const isVerified = await robloxAPI.verifyUserOwnership(userId, pendingVerification.code);
+    
+    if (isVerified) {
+      // Doğrulama başarılı - hesabı değiştir
+      const links = loadAccountLinks();
+      const oldUsername = links[discordUserId];
+      links[discordUserId] = robloxNick;
+      
+      // Bekleyen doğrulamayı sil
+      delete pendingVerifications[discordUserId];
+      savePendingVerifications(pendingVerifications);
+      
+      if (saveAccountLinks(links)) {
+        const embed = new EmbedBuilder()
+          .setTitle('Hesap Değiştirildi')
+          .setDescription('Bağlı Roblox hesabınız başarıyla değiştirildi')
+          .addFields(
+            { name: 'Discord Kullanıcısı', value: interaction.user.tag, inline: true },
+            { name: 'Eski Roblox Hesabı', value: oldUsername, inline: true },
+            { name: 'Yeni Roblox Hesabı', value: robloxNick, inline: true },
+            { name: 'Rütbe', value: `${rankInfo.name} (Seviye ${rankInfo.rank})`, inline: true }
+          )
+          .setColor(0x5865F2)
+          .setTimestamp();
+        
+        return interaction.editReply({ embeds: [embed] });
+      } else {
+        return interaction.editReply('HATA: Hesap değişikliği kaydedilemedi! Lütfen tekrar deneyin.');
+      }
+    }
+  }
+  
+  // Yeni doğrulama kodu oluştur
+  const verificationCode = generateVerificationCode();
+  pendingVerifications[discordUserId] = {
+    code: verificationCode,
+    robloxUsername: robloxNick,
+    timestamp: Date.now()
+  };
+  savePendingVerifications(pendingVerifications);
+  
+  const verificationEmbed = new EmbedBuilder()
+    .setTitle('Hesap Doğrulama Gerekli')
+    .setDescription('Hesabınızı değiştirmek için yeni Roblox profil açıklamanıza aşağıdaki doğrulama kodunu eklemeniz gerekiyor.')
+    .addFields(
+      { name: 'Mevcut Bağlı Hesap', value: existingLink, inline: false },
+      { name: 'Yeni Hesap', value: robloxNick, inline: false },
+      { name: 'Adım 1', value: `**${robloxNick}** Roblox profilinize gidin`, inline: false },
+      { name: 'Adım 2', value: `Profil açıklamanıza şu doğrulama kodunu ekleyin:\n\`\`\`${verificationCode}\`\`\``, inline: false },
+      { name: 'Adım 3', value: 'Kaydedin ve tekrar `/roblox-değiştir` komutunu kullanın', inline: false },
       { name: 'Not', value: 'Bu kod 10 dakika süreyle geçerlidir', inline: false }
     )
     .setColor(0xFEE75C)

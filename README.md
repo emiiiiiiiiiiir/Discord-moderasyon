@@ -61,8 +61,8 @@ Discord Developer Portal'da botunuza şu yetkileri verin:
 
 - `/rütbe-sorgu <roblox_nick>` - Kullanıcının Roblox grubundaki rütbesini gösterir
 - `/rütbe-değiştir <roblox_nick> <rütbe>` - Kullanıcının rütbesini değiştirir (Hesap bağlama ve rütbe yetkisi gerekir)
-- `/rütbe-terfi <roblox_nick>` - Kullanıcıya 1 seviye terfi verir (Hesap bağlama ve rütbe yetkisi gerekir)
-- `/rütbe-tenzil <roblox_nick>` - Kullanıcıya 1 seviye tenzil verir (Hesap bağlama ve rütbe yetkisi gerekir)
+- `/rütbe-terfi <roblox_nick>` - Kullanıcıya 1x terfi verir (Hesap bağlama ve rütbe yetkisi gerekir)
+- `/rütbe-tenzil <roblox_nick>` - Kullanıcıya 1x tenzil verir (Hesap bağlama ve rütbe yetkisi gerekir)
 
 ### Discord Yasaklama Komutları (Discord User ID ile)
 

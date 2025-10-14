@@ -117,7 +117,7 @@ const commands = [
   
   new SlashCommandBuilder()
     .setName('rütbe-terfi')
-    .setDescription('Kullanıcıya 1 seviye terfi verir')
+    .setDescription('Kullanıcıya 1x terfi verir')
     .addStringOption(option =>
       option.setName('roblox_nick')
         .setDescription('Terfi edilecek kişinin Roblox kullanıcı adı')
@@ -126,7 +126,7 @@ const commands = [
   
   new SlashCommandBuilder()
     .setName('rütbe-tenzil')
-    .setDescription('Kullanıcıya 1 seviye tenzil verir')
+    .setDescription('Kullanıcıya 1x tenzil verir')
     .addStringOption(option =>
       option.setName('roblox_nick')
         .setDescription('Tenzil edilecek kişinin Roblox kullanıcı adı')

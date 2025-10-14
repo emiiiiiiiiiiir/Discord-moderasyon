@@ -359,7 +359,7 @@ async function handleRankChange(interaction) {
       .setTitle('Rütbe Değiştirildi')
       .setDescription(`**${robloxNick}** kullanıcısının rütbesi başarıyla değiştirildi`)
       .addFields(
-        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.rank})`, inline: false },
+        { name: 'İlgili Kişi', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.name})`, inline: false },
         { name: 'Yeni Rütbe', value: targetRole.name, inline: true },
         { name: 'Rütbe', value: targetRole.rank.toString(), inline: true }
       )
@@ -413,7 +413,7 @@ async function handleRankPromotion(interaction) {
       .setTitle('Terfi İşlemi')
       .setDescription(`**${robloxNick}** kullanıcısı 1x terfi edildi`)
       .addFields(
-        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.rank})`, inline: false },
+        { name: 'İlgili Kişi', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.name})`, inline: false },
         { name: 'Eski Rütbe', value: currentRank.name, inline: true },
         { name: 'Yeni Rütbe', value: nextRole.name, inline: true }
       )
@@ -467,7 +467,7 @@ async function handleRankDemotion(interaction) {
       .setTitle('Tenzil İşlemi')
       .setDescription(`**${robloxNick}** kullanıcısı 1x tenzil edildi`)
       .addFields(
-        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.rank})`, inline: false },
+        { name: 'İlgili Kişi', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.name})`, inline: false },
         { name: 'Eski Rütbe', value: currentRank.name, inline: true },
         { name: 'Yeni Rütbe', value: prevRole.name, inline: true }
       )

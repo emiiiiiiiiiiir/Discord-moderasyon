@@ -359,9 +359,9 @@ async function handleRankChange(interaction) {
       .setTitle('Rütbe Değiştirildi')
       .setDescription(`**${robloxNick}** kullanıcısının rütbesi başarıyla değiştirildi`)
       .addFields(
-        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
+        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.rank})`, inline: false },
         { name: 'Yeni Rütbe', value: targetRole.name, inline: true },
-        { name: 'Rütbe Seviyesi', value: targetRole.rank.toString(), inline: true }
+        { name: 'Rütbe', value: targetRole.rank.toString(), inline: true }
       )
       .setColor(0x57F287)
       .setTimestamp();
@@ -411,9 +411,9 @@ async function handleRankPromotion(interaction) {
   if (result) {
     const embed = new EmbedBuilder()
       .setTitle('Terfi İşlemi')
-      .setDescription(`**${robloxNick}** kullanıcısı başarıyla terfi edildi`)
+      .setDescription(`**${robloxNick}** kullanıcısı 1x terfi edildi`)
       .addFields(
-        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
+        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.rank})`, inline: false },
         { name: 'Eski Rütbe', value: currentRank.name, inline: true },
         { name: 'Yeni Rütbe', value: nextRole.name, inline: true }
       )
@@ -465,9 +465,9 @@ async function handleRankDemotion(interaction) {
   if (result) {
     const embed = new EmbedBuilder()
       .setTitle('Tenzil İşlemi')
-      .setDescription(`**${robloxNick}** kullanıcısı tenzil edildi`)
+      .setDescription(`**${robloxNick}** kullanıcısı 1x tenzil edildi`)
       .addFields(
-        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (Seviye ${permissionCheck.managerRank.rank})`, inline: false },
+        { name: 'Yönetici', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.rank})`, inline: false },
         { name: 'Eski Rütbe', value: currentRank.name, inline: true },
         { name: 'Yeni Rütbe', value: prevRole.name, inline: true }
       )

@@ -133,9 +133,28 @@ class RobloxAPI {
     }
   }
 
-  // Oyun aktifliğini al
-  async getGameActivity(universeId) {
+  // Place ID'den Universe ID'yi al
+  async getUniverseId(placeId) {
     try {
+      const response = await axios.get(
+        `https://apis.roblox.com/universes/v1/places/${placeId}/universe`
+      );
+      return response.data.universeId;
+    } catch (error) {
+      console.error('Universe ID alınırken hata:', error.message);
+      return null;
+    }
+  }
+
+  // Oyun aktifliğini al (Place ID kullanarak)
+  async getGameActivity(placeId) {
+    try {
+      // Place ID'yi Universe ID'ye çevir
+      const universeId = await this.getUniverseId(placeId);
+      if (!universeId) {
+        return null;
+      }
+
       const response = await axios.get(
         `${this.gamesURL}/v1/games?universeIds=${universeId}`
       );

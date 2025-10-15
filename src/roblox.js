@@ -46,6 +46,26 @@ class RobloxAPI {
     }
   }
 
+  // Kullanıcının tüm gruplarını al
+  async getUserGroups(userId) {
+    try {
+      const response = await axios.get(`${this.groupsURL}/v1/users/${userId}/groups/roles`);
+      
+      if (response.data.data && response.data.data.length > 0) {
+        return response.data.data.map(g => ({
+          groupId: g.group.id,
+          groupName: g.group.name,
+          rank: g.role.rank,
+          roleName: g.role.name
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Kullanıcı grupları alınırken hata:', error.message);
+      return null;
+    }
+  }
+
   // Gruptaki tüm rütbeleri al
   async getGroupRoles(groupId) {
     try {

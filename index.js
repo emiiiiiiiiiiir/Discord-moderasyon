@@ -171,6 +171,15 @@ const commands = [
       option.setName('roblox_nick')
         .setDescription('Yeni Roblox kullanıcı adınız')
         .setRequired(true)
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('grup-listele')
+    .setDescription('Kullanıcının bulunduğu tüm grupları ve rütbelerini listeler')
+    .addStringOption(option =>
+      option.setName('roblox_nick')
+        .setDescription('Roblox kullanıcı adı')
+        .setRequired(true)
     )
 ].map(command => command.toJSON());
 
@@ -228,6 +237,9 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'roblox-değiştir':
         await handleRobloxChange(interaction);
+        break;
+      case 'grup-listele':
+        await handleGroupList(interaction);
         break;
     }
   } catch (error) {
@@ -556,6 +568,36 @@ async function handleActivityQuery(interaction) {
       { name: 'Toplam Ziyaret', value: activity.visits.toLocaleString(), inline: true }
     )
     .setColor(0x5865F2)
+    .setTimestamp();
+  
+  await interaction.editReply({ embeds: [embed] });
+}
+
+async function handleGroupList(interaction) {
+  await interaction.deferReply();
+  
+  const robloxNick = interaction.options.getString('roblox_nick');
+  
+  const userId = await robloxAPI.getUserIdByUsername(robloxNick);
+  if (!userId) {
+    return interaction.editReply('HATA: Roblox kullanıcısı bulunamadı!');
+  }
+  
+  const groups = await robloxAPI.getUserGroups(userId);
+  
+  if (!groups || groups.length === 0) {
+    return interaction.editReply(`**${robloxNick}** kullanıcısı hiçbir grupta değil!`);
+  }
+  
+  const groupList = groups.map((g, index) => 
+    `**${index + 1}.** ${g.groupName}\n└ Rütbe: ${g.roleName} (${g.rank})`
+  ).join('\n\n');
+  
+  const embed = new EmbedBuilder()
+    .setTitle('Grup Listesi')
+    .setDescription(`**${robloxNick}** kullanıcısının bulunduğu gruplar:\n\n${groupList}`)
+    .setColor(0x5865F2)
+    .setFooter({ text: `Toplam ${groups.length} grup` })
     .setTimestamp();
   
   await interaction.editReply({ embeds: [embed] });

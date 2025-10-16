@@ -180,6 +180,42 @@ const commands = [
       option.setName('roblox_nick')
         .setDescription('Roblox kullanıcı adı')
         .setRequired(true)
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('branş-istek')
+    .setDescription('Branş grup isteğini kabul veya reddeder')
+    .addStringOption(option =>
+      option.setName('roblox_nick')
+        .setDescription('Roblox kullanıcı adı')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('branş')
+        .setDescription('Branş grubu')
+        .setRequired(true)
+        .addChoices(
+          { name: 'DKK', value: 'DKK' },
+          { name: 'KKK', value: 'KKK' },
+          { name: 'ÖKK', value: 'ÖKK' },
+          { name: 'JGK', value: 'JGK' },
+          { name: 'AS.İZ', value: 'AS.İZ' },
+          { name: 'HKK', value: 'HKK' }
+        )
+    )
+    .addStringOption(option =>
+      option.setName('karar')
+        .setDescription('Kabul veya Red')
+        .setRequired(true)
+        .addChoices(
+          { name: 'Kabul', value: 'kabul' },
+          { name: 'Red', value: 'red' }
+        )
+    )
+    .addStringOption(option =>
+      option.setName('sebep')
+        .setDescription('Kabul/Red sebebi')
+        .setRequired(true)
     )
 ].map(command => command.toJSON());
 
@@ -240,6 +276,9 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'grup-listele':
         await handleGroupList(interaction);
+        break;
+      case 'branş-istek':
+        await handleBranchRequest(interaction);
         break;
     }
   } catch (error) {
@@ -601,6 +640,70 @@ async function handleGroupList(interaction) {
     .setTimestamp();
   
   await interaction.editReply({ embeds: [embed] });
+}
+
+async function handleBranchRequest(interaction) {
+  await interaction.deferReply();
+  
+  const managerUsername = getLinkedRobloxUsername(interaction.user.id);
+  if (!managerUsername) {
+    return interaction.editReply('HATA: Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.');
+  }
+
+  const managerId = await robloxAPI.getUserIdByUsername(managerUsername);
+  if (!managerId) {
+    return interaction.editReply('HATA: Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.');
+  }
+
+  const managerRank = await robloxAPI.getUserRankInGroup(managerId, config.groupId);
+  if (!managerRank) {
+    return interaction.editReply('HATA: Grupta olmayan kişiler branş işlemi yapamaz!');
+  }
+
+  if (config.branchManagerRanks && !config.branchManagerRanks.includes(managerRank.rank)) {
+    return interaction.editReply(`HATA: Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş işlemi yapabilir! (Sizin rütbeniz: ${managerRank.rank})`);
+  }
+  
+  const robloxNick = interaction.options.getString('roblox_nick');
+  const branch = interaction.options.getString('branş');
+  const decision = interaction.options.getString('karar');
+  const reason = interaction.options.getString('sebep');
+  
+  const branchGroupId = config.branchGroups[branch];
+  
+  if (!branchGroupId || branchGroupId === 'GRUP_ID_BURAYA') {
+    return interaction.editReply(`HATA: ${branch} branşı için grup ID tanımlanmamış! Config dosyasını kontrol edin.`);
+  }
+  
+  const userId = await robloxAPI.getUserIdByUsername(robloxNick);
+  if (!userId) {
+    return interaction.editReply('HATA: Roblox kullanıcısı bulunamadı!');
+  }
+  
+  let result;
+  if (decision === 'kabul') {
+    result = await robloxAPI.acceptJoinRequest(branchGroupId, userId, ROBLOX_COOKIE);
+  } else {
+    result = await robloxAPI.rejectJoinRequest(branchGroupId, userId, ROBLOX_COOKIE);
+  }
+  
+  if (result) {
+    const embed = new EmbedBuilder()
+      .setTitle(decision === 'kabul' ? '✅ İstek Kabul Edildi' : '❌ İstek Reddedildi')
+      .setDescription(`**${robloxNick}** kullanıcısının **${branch}** branşı isteği ${decision === 'kabul' ? 'kabul edildi' : 'reddedildi'}`)
+      .addFields(
+        { name: 'İlgili Kişi', value: `${managerUsername} (${managerRank.name})`, inline: true },
+        { name: 'Branş', value: branch, inline: true },
+        { name: 'Karar', value: decision === 'kabul' ? 'Kabul' : 'Red', inline: true },
+        { name: 'Sebep', value: reason, inline: false }
+      )
+      .setColor(decision === 'kabul' ? 0x57F287 : 0xED4245)
+      .setTimestamp();
+    
+    await interaction.editReply({ embeds: [embed] });
+  } else {
+    await interaction.editReply(`HATA: İstek ${decision === 'kabul' ? 'kabul' : 'red'} edilemedi! Kullanıcının gruba istek göndermediğinden emin olun.`);
+  }
 }
 
 async function handleRobloxLink(interaction) {

@@ -3,5 +3,14 @@
   "gameId": "92340809504354",
   "adminRoleId": "1425235464637644810",
   "allowedRanks": [35, 36, 37, 38, 39, 255],
-  "maxRankCanAssign": 250
+  "maxRankCanAssign": 250,
+  "branchGroups": {
+    "DKK": "GRUP_ID_BURAYA",
+    "KKK": "GRUP_ID_BURAYA",
+    "ÖKK": "GRUP_ID_BURAYA",
+    "JGK": "GRUP_ID_BURAYA",
+    "AS.İZ": "GRUP_ID_BURAYA",
+    "HKK": "GRUP_ID_BURAYA"
+  },
+  "branchManagerRanks": [35, 36, 37, 38, 39, 255]
 }

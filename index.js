@@ -20,14 +20,80 @@ const ROBLOX_COOKIE = process.env.ROBLOX_COOKIE;
 const ACCOUNT_LINKS_FILE = './account_links.json';
 const PENDING_VERIFICATIONS_FILE = './pending_verifications.json';
 
+function validateEnvironmentVariables() {
+  const requiredVars = [
+    { name: 'DISCORD_TOKEN', value: DISCORD_TOKEN },
+    { name: 'DISCORD_CLIENT_ID', value: DISCORD_CLIENT_ID },
+    { name: 'ROBLOX_COOKIE', value: ROBLOX_COOKIE }
+  ];
+
+  const missingVars = requiredVars.filter(v => !v.value);
+  
+  if (missingVars.length > 0) {
+    console.error('HATA: Gerekli environment variable\'lar eksik:');
+    missingVars.forEach(v => console.error(`  - ${v.name}`));
+    console.error('\nLütfen Replit Secrets bölümünden bu değişkenleri ekleyin.');
+    process.exit(1);
+  }
+  
+  console.log('✓ Tüm environment variable\'lar mevcut');
+}
+
+function validateConfig() {
+  const warnings = [];
+  
+  if (!config.groupId) {
+    console.error('HATA: config.json içinde groupId tanımlanmamış!');
+    process.exit(1);
+  }
+  
+  if (!config.gameId) {
+    warnings.push('gameId tanımlanmamış - /aktiflik-sorgu komutu çalışmayacak');
+  }
+  
+  if (!config.adminRoleId) {
+    warnings.push('adminRoleId tanımlanmamış - yasaklama komutları çalışmayacak');
+  }
+  
+  if (config.branchGroups) {
+    const placeholders = Object.entries(config.branchGroups)
+      .filter(([_, id]) => id === 'GRUP_ID_BURAYA')
+      .map(([branch]) => branch);
+    
+    if (placeholders.length > 0) {
+      warnings.push(`Şu branş grupları için ID tanımlanmamış: ${placeholders.join(', ')}`);
+    }
+  }
+  
+  if (warnings.length > 0) {
+    console.warn('\n⚠️  Konfigürasyon Uyarıları:');
+    warnings.forEach(w => console.warn(`  - ${w}`));
+    console.warn('');
+  } else {
+    console.log('✓ Konfigürasyon geçerli');
+  }
+}
+
 function loadAccountLinks() {
   try {
     if (fs.existsSync(ACCOUNT_LINKS_FILE)) {
       const data = fs.readFileSync(ACCOUNT_LINKS_FILE, 'utf8');
+      if (!data || data.trim() === '') {
+        console.warn('Hesap bağlantıları dosyası boş, yeni dosya oluşturuluyor...');
+        return {};
+      }
       return JSON.parse(data);
     }
   } catch (error) {
-    console.error('Hesap bağlantıları yüklenirken hata:', error);
+    console.error('Hesap bağlantıları yüklenirken hata:', error.message);
+    console.warn('Bozuk dosya yedekleniyor ve yeni dosya oluşturuluyor...');
+    try {
+      if (fs.existsSync(ACCOUNT_LINKS_FILE)) {
+        fs.copyFileSync(ACCOUNT_LINKS_FILE, `${ACCOUNT_LINKS_FILE}.backup-${Date.now()}`);
+      }
+    } catch (backupError) {
+      console.error('Yedekleme hatası:', backupError.message);
+    }
   }
   return {};
 }
@@ -51,10 +117,22 @@ function loadPendingVerifications() {
   try {
     if (fs.existsSync(PENDING_VERIFICATIONS_FILE)) {
       const data = fs.readFileSync(PENDING_VERIFICATIONS_FILE, 'utf8');
+      if (!data || data.trim() === '') {
+        console.warn('Bekleyen doğrulamalar dosyası boş, yeni dosya oluşturuluyor...');
+        return {};
+      }
       return JSON.parse(data);
     }
   } catch (error) {
-    console.error('Bekleyen doğrulamalar yüklenirken hata:', error);
+    console.error('Bekleyen doğrulamalar yüklenirken hata:', error.message);
+    console.warn('Bozuk dosya yedekleniyor ve yeni dosya oluşturuluyor...');
+    try {
+      if (fs.existsSync(PENDING_VERIFICATIONS_FILE)) {
+        fs.copyFileSync(PENDING_VERIFICATIONS_FILE, `${PENDING_VERIFICATIONS_FILE}.backup-${Date.now()}`);
+      }
+    } catch (backupError) {
+      console.error('Yedekleme hatası:', backupError.message);
+    }
   }
   return {};
 }
@@ -219,6 +297,13 @@ const commands = [
     )
 ].map(command => command.toJSON());
 
+console.log('=== Discord Bot Başlatılıyor ===\n');
+
+validateEnvironmentVariables();
+validateConfig();
+
+console.log('\n=== Bot Başlatılıyor ===\n');
+
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
 
 (async () => {
@@ -231,6 +316,7 @@ const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
     console.log('Slash komutları başarıyla kaydedildi');
   } catch (error) {
     console.error('Komut kaydı hatası:', error);
+    process.exit(1);
   }
 })();
 

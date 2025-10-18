@@ -12,6 +12,12 @@ The bot provides comprehensive management features:
 **Recent Changes**:
 
 *October 18, 2025*:
+- **Branch Rank Management System**: Added `/branş-rütbe-değiştir` command for managing ranks in branch groups
+- Command allows changing user ranks in specific branch groups (DKK, ÖKK, KKK, AS.İZ, HKK, JGK)
+- Requires Discord account to be linked to Roblox account via `/roblox-bağla`
+- Permission check uses main group rank (branchManagerRanks) to authorize branch operations
+- Validates branch group ID configuration and user membership in target branch group
+- Displays old rank, new rank, reason, and manager information in success embed
 - **Startup Validation System**: Added comprehensive validation on bot startup
 - Environment variables (DISCORD_TOKEN, DISCORD_CLIENT_ID, ROBLOX_COOKIE) are now validated before bot starts
 - Config.json validation ensures required fields are present and warns about missing optional configurations

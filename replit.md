@@ -11,6 +11,16 @@ The bot provides comprehensive management features:
 
 **Recent Changes**:
 
+*October 18, 2025*:
+- **Startup Validation System**: Added comprehensive validation on bot startup
+- Environment variables (DISCORD_TOKEN, DISCORD_CLIENT_ID, ROBLOX_COOKIE) are now validated before bot starts
+- Config.json validation ensures required fields are present and warns about missing optional configurations
+- Bot will now exit with clear error messages if critical configuration is missing
+- **Enhanced Error Handling**: Improved JSON file operations (account_links.json, pending_verifications.json)
+- JSON files are now checked for corruption and automatically backed up if damaged
+- Empty or malformed JSON files are handled gracefully with fallback to empty state
+- Better error messages throughout the codebase for easier debugging
+
 *October 13, 2025*:
 - **Rank Permission System Update**: Changed rank management permissions to use specific rank levels
 - Only ranks 35, 36, 37, 38, 39, and 255 can now perform rank management operations

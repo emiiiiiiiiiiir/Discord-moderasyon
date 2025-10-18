@@ -294,6 +294,38 @@ const commands = [
       option.setName('sebep')
         .setDescription('Kabul/Red sebebi')
         .setRequired(true)
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('branş-rütbe-değiştir')
+    .setDescription('Branş grubunda kullanıcının rütbesini değiştirir')
+    .addStringOption(option =>
+      option.setName('roblox_nick')
+        .setDescription('Rütbe verilecek kişinin Roblox kullanıcı adı')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('branş')
+        .setDescription('Branş grubu')
+        .setRequired(true)
+        .addChoices(
+          { name: 'DKK', value: 'DKK' },
+          { name: 'KKK', value: 'KKK' },
+          { name: 'ÖKK', value: 'ÖKK' },
+          { name: 'JGK', value: 'JGK' },
+          { name: 'AS.İZ', value: 'AS.İZ' },
+          { name: 'HKK', value: 'HKK' }
+        )
+    )
+    .addStringOption(option =>
+      option.setName('rütbe')
+        .setDescription('Verilecek rütbe adı')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('sebep')
+        .setDescription('Rütbe değişikliği sebebi')
+        .setRequired(true)
     )
 ].map(command => command.toJSON());
 
@@ -365,6 +397,9 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'branş-istek':
         await handleBranchRequest(interaction);
+        break;
+      case 'branş-rütbe-değiştir':
+        await handleBranchRankChange(interaction);
         break;
     }
   } catch (error) {
@@ -726,6 +761,81 @@ async function handleGroupList(interaction) {
     .setTimestamp();
   
   await interaction.editReply({ embeds: [embed] });
+}
+
+async function handleBranchRankChange(interaction) {
+  await interaction.deferReply();
+  
+  const managerUsername = getLinkedRobloxUsername(interaction.user.id);
+  if (!managerUsername) {
+    return interaction.editReply('HATA: Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.');
+  }
+
+  const managerId = await robloxAPI.getUserIdByUsername(managerUsername);
+  if (!managerId) {
+    return interaction.editReply('HATA: Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.');
+  }
+
+  const managerRank = await robloxAPI.getUserRankInGroup(managerId, config.groupId);
+  if (!managerRank) {
+    return interaction.editReply('HATA: Grupta olmayan kişiler branş rütbe işlemi yapamaz!');
+  }
+
+  if (config.branchManagerRanks && !config.branchManagerRanks.includes(managerRank.rank)) {
+    return interaction.editReply(`HATA: Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş rütbe işlemi yapabilir! (Sizin rütbeniz: ${managerRank.rank})`);
+  }
+  
+  const robloxNick = interaction.options.getString('roblox_nick');
+  const branch = interaction.options.getString('branş');
+  const targetRankName = interaction.options.getString('rütbe');
+  const reason = interaction.options.getString('sebep');
+  
+  const branchGroupId = config.branchGroups[branch];
+  
+  if (!branchGroupId || branchGroupId === 'GRUP_ID_BURAYA') {
+    return interaction.editReply(`HATA: ${branch} branşı için grup ID tanımlanmamış! Config dosyasını kontrol edin.`);
+  }
+  
+  const userId = await robloxAPI.getUserIdByUsername(robloxNick);
+  if (!userId) {
+    return interaction.editReply('HATA: Roblox kullanıcısı bulunamadı!');
+  }
+  
+  const currentRank = await robloxAPI.getUserRankInGroup(userId, branchGroupId);
+  if (!currentRank) {
+    return interaction.editReply(`HATA: Kullanıcı **${branch}** branş grubunda değil!`);
+  }
+  
+  const branchRoles = await robloxAPI.getGroupRoles(branchGroupId);
+  if (!branchRoles) {
+    return interaction.editReply('HATA: Branş grup rütbeleri alınamadı!');
+  }
+  
+  const targetRole = branchRoles.find(r => r.name.toLowerCase() === targetRankName.toLowerCase());
+  if (!targetRole) {
+    return interaction.editReply(`HATA: **${targetRankName}** rütbesi **${branch}** branşında bulunamadı!`);
+  }
+  
+  const result = await robloxAPI.setUserRole(userId, branchGroupId, targetRole.id, ROBLOX_COOKIE);
+  
+  if (result) {
+    const embed = new EmbedBuilder()
+      .setTitle('Branş Rütbe Değiştirildi')
+      .setDescription(`**${robloxNick}** kullanıcısının **${branch}** branşındaki rütbesi değiştirildi`)
+      .addFields(
+        { name: 'İlgili Kişi', value: `${managerUsername} (${managerRank.name})`, inline: true },
+        { name: 'Branş', value: branch, inline: true },
+        { name: 'Eski Rütbe', value: currentRank.name, inline: true },
+        { name: 'Yeni Rütbe', value: targetRole.name, inline: true },
+        { name: 'Sebep', value: reason, inline: false }
+      )
+      .setColor(0x5865F2)
+      .setTimestamp();
+    
+    await interaction.editReply({ embeds: [embed] });
+  } else {
+    await interaction.editReply('HATA: Rütbe değiştirilemedi! Cookie kontrolü yapın veya bot yetkilerini kontrol edin.');
+  }
 }
 
 async function handleBranchRequest(interaction) {

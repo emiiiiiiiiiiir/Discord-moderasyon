@@ -6,11 +6,11 @@
   "maxRankCanAssign": 250,
   "branchGroups": {
     "DKK": "312435226",
-    "KKK": "GRUP_ID_BURAYA",
-    "ÖKK": "GRUP_ID_BURAYA",
+    "KKK": "16910793",
+    "ÖKK": "",
     "JGK": "GRUP_ID_BURAYA",
     "AS.İZ": "GRUP_ID_BURAYA",
     "HKK": "GRUP_ID_BURAYA"
   },
-  "branchManagerRanks": [35, 36, 37, 38, 39, 255]
+  "branchManagerRanks": [254, 255]
 }

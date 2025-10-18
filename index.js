@@ -775,15 +775,6 @@ async function handleBranchRankChange(interaction) {
   if (!managerId) {
     return interaction.editReply('HATA: Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.');
   }
-
-  const managerRank = await robloxAPI.getUserRankInGroup(managerId, config.groupId);
-  if (!managerRank) {
-    return interaction.editReply('HATA: Grupta olmayan kişiler branş rütbe işlemi yapamaz!');
-  }
-
-  if (config.branchManagerRanks && !config.branchManagerRanks.includes(managerRank.rank)) {
-    return interaction.editReply(`HATA: Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş rütbe işlemi yapabilir! (Sizin rütbeniz: ${managerRank.rank})`);
-  }
   
   const robloxNick = interaction.options.getString('roblox_nick');
   const branch = interaction.options.getString('branş');
@@ -794,6 +785,15 @@ async function handleBranchRankChange(interaction) {
   
   if (!branchGroupId || branchGroupId === 'GRUP_ID_BURAYA') {
     return interaction.editReply(`HATA: ${branch} branşı için grup ID tanımlanmamış! Config dosyasını kontrol edin.`);
+  }
+
+  const managerRank = await robloxAPI.getUserRankInGroup(managerId, branchGroupId);
+  if (!managerRank) {
+    return interaction.editReply(`HATA: **${branch}** branş grubunda olmayan kişiler bu branşta rütbe işlemi yapamaz!`);
+  }
+
+  if (config.branchManagerRanks && !config.branchManagerRanks.includes(managerRank.rank)) {
+    return interaction.editReply(`HATA: Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş rütbe işlemi yapabilir! (Sizin **${branch}** branşındaki rütbeniz: ${managerRank.rank})`);
   }
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
@@ -850,15 +850,6 @@ async function handleBranchRequest(interaction) {
   if (!managerId) {
     return interaction.editReply('HATA: Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.');
   }
-
-  const managerRank = await robloxAPI.getUserRankInGroup(managerId, config.groupId);
-  if (!managerRank) {
-    return interaction.editReply('HATA: Grupta olmayan kişiler branş işlemi yapamaz!');
-  }
-
-  if (config.branchManagerRanks && !config.branchManagerRanks.includes(managerRank.rank)) {
-    return interaction.editReply(`HATA: Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş işlemi yapabilir! (Sizin rütbeniz: ${managerRank.rank})`);
-  }
   
   const robloxNick = interaction.options.getString('roblox_nick');
   const branch = interaction.options.getString('branş');
@@ -869,6 +860,15 @@ async function handleBranchRequest(interaction) {
   
   if (!branchGroupId || branchGroupId === 'GRUP_ID_BURAYA') {
     return interaction.editReply(`HATA: ${branch} branşı için grup ID tanımlanmamış! Config dosyasını kontrol edin.`);
+  }
+
+  const managerRank = await robloxAPI.getUserRankInGroup(managerId, branchGroupId);
+  if (!managerRank) {
+    return interaction.editReply(`HATA: **${branch}** branş grubunda olmayan kişiler bu branşta işlem yapamaz!`);
+  }
+
+  if (config.branchManagerRanks && !config.branchManagerRanks.includes(managerRank.rank)) {
+    return interaction.editReply(`HATA: Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş işlemi yapabilir! (Sizin **${branch}** branşındaki rütbeniz: ${managerRank.rank})`);
   }
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);

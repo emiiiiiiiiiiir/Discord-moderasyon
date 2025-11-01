@@ -212,8 +212,8 @@ const commands = [
     ),
   
   new SlashCommandBuilder()
-    .setName('tam-yasakla')
-    .setDescription('Kullanıcıyı Discord sunucusundan yasaklar')
+    .setName('tamyasak')
+    .setDescription('Kullanıcıyı botun bulunduğu tüm sunuculardan yasaklar')
     .addStringOption(option =>
       option.setName('kullanici_id')
         .setDescription('Discord kullanıcı ID\'si')
@@ -221,8 +221,8 @@ const commands = [
     ),
   
   new SlashCommandBuilder()
-    .setName('tam-yasak-kaldır')
-    .setDescription('Kullanıcının Discord sunucusundan yasağını kaldırır')
+    .setName('tamyasak-kaldır')
+    .setDescription('Kullanıcının botun bulunduğu tüm sunuculardan yasağını kaldırır')
     .addStringOption(option =>
       option.setName('kullanici_id')
         .setDescription('Discord kullanıcı ID\'si')
@@ -377,10 +377,10 @@ client.on('interactionCreate', async (interaction) => {
       case 'rütbe-tenzil':
         await handleRankDemotion(interaction);
         break;
-      case 'tam-yasakla':
+      case 'tamyasak':
         await handleBan(interaction);
         break;
-      case 'tam-yasak-kaldır':
+      case 'tamyasak-kaldır':
         await handleUnban(interaction);
         break;
       case 'aktiflik-sorgu':
@@ -663,22 +663,43 @@ async function handleBan(interaction) {
   
   try {
     const user = await client.users.fetch(discordUserId);
-    await interaction.guild.members.ban(discordUserId, { reason: 'Admin komutu ile yasaklandı' });
+    const guilds = client.guilds.cache;
+    
+    let successCount = 0;
+    let failCount = 0;
+    const failedGuilds = [];
+    
+    for (const [guildId, guild] of guilds) {
+      try {
+        await guild.members.ban(discordUserId, { reason: 'Tam yasak komutu ile yasaklandı' });
+        successCount++;
+      } catch (error) {
+        failCount++;
+        failedGuilds.push(guild.name);
+        console.error(`${guild.name} sunucusunda yasaklama hatası:`, error.message);
+      }
+    }
     
     const embed = new EmbedBuilder()
-      .setTitle('Kullanıcı Yasaklandı')
-      .setDescription(`**${user.tag}** sunucudan yasaklandı`)
+      .setTitle('Tam Yasak Uygulandı')
+      .setDescription(`**${user.tag}** botun bulunduğu sunuculardan yasaklandı`)
       .addFields(
         { name: 'Yasaklanan Kullanıcı', value: user.tag, inline: true },
-        { name: 'Discord ID', value: discordUserId, inline: true }
+        { name: 'Discord ID', value: discordUserId, inline: true },
+        { name: 'Başarılı', value: `${successCount} sunucu`, inline: true },
+        { name: 'Başarısız', value: `${failCount} sunucu`, inline: true }
       )
-      .setColor(0xED4245)
+      .setColor(successCount > 0 ? 0xED4245 : 0xFEE75C)
       .setTimestamp();
+    
+    if (failedGuilds.length > 0 && failedGuilds.length <= 5) {
+      embed.addFields({ name: 'Başarısız Sunucular', value: failedGuilds.join(', '), inline: false });
+    }
     
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Yasaklama hatası:', error);
-    await interaction.editReply('HATA: Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin veya botun yetkileri eksik olabilir.');
+    await interaction.editReply('HATA: Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin.');
   }
 }
 
@@ -692,21 +713,42 @@ async function handleUnban(interaction) {
   const discordUserId = interaction.options.getString('kullanici_id');
   
   try {
-    await interaction.guild.members.unban(discordUserId, 'Admin komutu ile yasak kaldırıldı');
+    const guilds = client.guilds.cache;
+    
+    let successCount = 0;
+    let failCount = 0;
+    const failedGuilds = [];
+    
+    for (const [guildId, guild] of guilds) {
+      try {
+        await guild.members.unban(discordUserId, 'Tam yasak kaldırma komutu ile yasak kaldırıldı');
+        successCount++;
+      } catch (error) {
+        failCount++;
+        failedGuilds.push(guild.name);
+        console.error(`${guild.name} sunucusunda yasak kaldırma hatası:`, error.message);
+      }
+    }
     
     const embed = new EmbedBuilder()
-      .setTitle('Yasak Kaldırıldı')
-      .setDescription(`**${discordUserId}** ID'li kullanıcının yasağı kaldırıldı`)
+      .setTitle('Tam Yasak Kaldırıldı')
+      .setDescription(`**${discordUserId}** ID'li kullanıcının botun bulunduğu sunuculardan yasağı kaldırıldı`)
       .addFields(
-        { name: 'Discord ID', value: discordUserId, inline: true }
+        { name: 'Discord ID', value: discordUserId, inline: true },
+        { name: 'Başarılı', value: `${successCount} sunucu`, inline: true },
+        { name: 'Başarısız', value: `${failCount} sunucu`, inline: true }
       )
-      .setColor(0x57F287)
+      .setColor(successCount > 0 ? 0x57F287 : 0xFEE75C)
       .setTimestamp();
+    
+    if (failedGuilds.length > 0 && failedGuilds.length <= 5) {
+      embed.addFields({ name: 'Başarısız Sunucular', value: failedGuilds.join(', '), inline: false });
+    }
     
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Yasak kaldırma hatası:', error);
-    await interaction.editReply('HATA: Yasak kaldırılamadı! Kullanıcı ID\'sini kontrol edin veya kullanıcı zaten yasaklı değil.');
+    await interaction.editReply('HATA: Yasak kaldırılamadı! Kullanıcı ID\'sini kontrol edin.');
   }
 }
 

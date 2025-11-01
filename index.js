@@ -343,6 +343,14 @@ client.on('clientReady', async () => {
   console.log(`Grup ID: ${config.groupId}`);
   console.log(`Oyun ID: ${config.gameId}`);
   
+  console.log('\nEski global komutlar siliniyor...');
+  try {
+    await rest.put(Routes.applicationCommands(DISCORD_CLIENT_ID), { body: [] });
+    console.log('✓ Global komutlar temizlendi');
+  } catch (error) {
+    console.error('✗ Global komut temizleme hatası:', error.message);
+  }
+  
   console.log('\nSlash komutları kaydediliyor...');
   
   const guilds = client.guilds.cache;

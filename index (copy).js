@@ -338,34 +338,24 @@ console.log('\n=== Bot Başlatılıyor ===\n');
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
 
-client.on('clientReady', async () => {
+(async () => {
+  try {
+    console.log('Slash komutları kaydediliyor...');
+    await rest.put(
+      Routes.applicationCommands(DISCORD_CLIENT_ID),
+      { body: commands }
+    );
+    console.log('Slash komutları başarıyla kaydedildi');
+  } catch (error) {
+    console.error('Komut kaydı hatası:', error);
+    process.exit(1);
+  }
+})();
+
+client.on('clientReady', () => {
   console.log(`${client.user.tag} olarak giriş yapıldı`);
   console.log(`Grup ID: ${config.groupId}`);
   console.log(`Oyun ID: ${config.gameId}`);
-  
-  console.log('\nSlash komutları kaydediliyor...');
-  
-  const guilds = client.guilds.cache;
-  let successCount = 0;
-  let failCount = 0;
-  
-  for (const [guildId, guild] of guilds) {
-    try {
-      await rest.put(
-        Routes.applicationGuildCommands(DISCORD_CLIENT_ID, guildId),
-        { body: commands }
-      );
-      console.log(`✓ ${guild.name} sunucusuna komutlar kaydedildi`);
-      successCount++;
-    } catch (error) {
-      console.error(`✗ ${guild.name} sunucusuna komut kaydı hatası:`, error.message);
-      failCount++;
-    }
-  }
-  
-  console.log(`\n=== Komut Kaydı Tamamlandı ===`);
-  console.log(`Başarılı: ${successCount} sunucu`);
-  console.log(`Başarısız: ${failCount} sunucu`);
 });
 
 client.on('interactionCreate', async (interaction) => {

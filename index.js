@@ -51,8 +51,8 @@ function validateConfig() {
     warnings.push('gameId tanımlanmamış - /aktiflik-sorgu komutu çalışmayacak');
   }
   
-  if (!config.adminRoleId) {
-    warnings.push('adminRoleId tanımlanmamış - yasaklama komutları çalışmayacak');
+  if (!config.adminRoleIds || !Array.isArray(config.adminRoleIds) || config.adminRoleIds.length === 0) {
+    warnings.push('adminRoleIds tanımlanmamış veya boş - yasaklama komutları çalışmayacak');
   }
   
   if (config.branchGroups) {
@@ -688,7 +688,7 @@ async function handleRankDemotion(interaction) {
 }
 
 async function handleBan(interaction) {
-  if (!interaction.member.roles.cache.has(config.adminRoleId)) {
+  if (!interaction.member.roles.cache.some(role => config.adminRoleIds.includes(role.id))) {
     return interaction.reply({ content: 'HATA: Bu komutu kullanma yetkiniz yok!', ephemeral: true });
   }
   
@@ -739,7 +739,7 @@ async function handleBan(interaction) {
 }
 
 async function handleUnban(interaction) {
-  if (!interaction.member.roles.cache.has(config.adminRoleId)) {
+  if (!interaction.member.roles.cache.some(role => config.adminRoleIds.includes(role.id))) {
     return interaction.reply({ content: 'HATA: Bu komutu kullanma yetkiniz yok!', ephemeral: true });
   }
   

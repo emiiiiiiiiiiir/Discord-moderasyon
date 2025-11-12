@@ -326,6 +326,20 @@ const commands = [
       option.setName('sebep')
         .setDescription('Rütbe değişikliği sebebi')
         .setRequired(true)
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('duyuru')
+    .setDescription('Botun bulunduğu tüm sunuculara duyuru yapar')
+    .addStringOption(option =>
+      option.setName('mesaj')
+        .setDescription('Duyuru mesajı')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('kanal_adi')
+        .setDescription('Duyurunun gönderileceği kanal adı (örn: duyurular, genel)')
+        .setRequired(true)
     )
 ].map(command => command.toJSON());
 
@@ -418,6 +432,9 @@ client.on('interactionCreate', async (interaction) => {
         break;
       case 'branş-rütbe-değiştir':
         await handleBranchRankChange(interaction);
+        break;
+      case 'duyuru':
+        await handleAnnouncement(interaction);
         break;
     }
   } catch (error) {
@@ -1134,6 +1151,62 @@ async function handleRobloxChange(interaction) {
     .setTimestamp();
   
   return interaction.editReply({ embeds: [verificationEmbed] });
+}
+
+async function handleAnnouncement(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+  
+  const mesaj = interaction.options.getString('mesaj');
+  const kanalAdi = interaction.options.getString('kanal_adi');
+  const member = interaction.member;
+  
+  let rolAdi;
+  if (interaction.user.username === 'emir_1881') {
+    rolAdi = 'İttifak Ordusu Bot Geliştiricisi';
+  } else {
+    const highestRole = member.roles.highest;
+    rolAdi = highestRole.name;
+  }
+  
+  const duyuruMetni = `${mesaj}\n\n-# ${interaction.user.username}, ${rolAdi}`;
+  
+  const guilds = client.guilds.cache;
+  let successCount = 0;
+  let failCount = 0;
+  const failedGuilds = [];
+  
+  for (const [guildId, guild] of guilds) {
+    try {
+      const kanal = guild.channels.cache.find(ch => 
+        ch.name.toLowerCase() === kanalAdi.toLowerCase() && ch.isTextBased()
+      );
+      
+      if (kanal) {
+        await kanal.send(duyuruMetni);
+        successCount++;
+      } else {
+        failCount++;
+        failedGuilds.push(`${guild.name} (kanal bulunamadı)`);
+      }
+    } catch (error) {
+      console.error(`${guild.name} sunucusunda duyuru hatası:`, error.message);
+      failCount++;
+      failedGuilds.push(`${guild.name} (${error.message})`);
+    }
+  }
+  
+  let sonucMesaji = `**Duyuru Gönderildi**\n\n`;
+  sonucMesaji += `Kanal: **${kanalAdi}**\n`;
+  sonucMesaji += `✓ Başarılı: ${successCount} sunucu\n`;
+  
+  if (failCount > 0) {
+    sonucMesaji += `✗ Başarısız: ${failCount} sunucu\n`;
+    if (failedGuilds.length > 0 && failedGuilds.length <= 10) {
+      sonucMesaji += `\nBaşarısız sunucular:\n${failedGuilds.map(g => `- ${g}`).join('\n')}`;
+    }
+  }
+  
+  await interaction.editReply(sonucMesaji);
 }
 
 client.login(DISCORD_TOKEN);

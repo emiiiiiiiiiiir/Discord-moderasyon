@@ -281,7 +281,7 @@ const commands = [
           { name: 'HKK', value: 'HKK' }
         )
     )
-    .addStringOption(optconstst =>
+    .addStringOption(option =>
       option.setName('karar')
         .setDescription('Kabul veya Red')
         .setRequired(true)

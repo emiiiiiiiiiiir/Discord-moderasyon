@@ -281,7 +281,7 @@ const commands = [
           { name: 'HKK', value: 'HKK' }
         )
     )
-    .addStringOption(option =>
+    .addStringOption(optconstst =>
       option.setName('karar')
         .setDescription('Kabul veya Red')
         .setRequired(true)
@@ -598,7 +598,7 @@ async function handleRankPromotion(interaction) {
   if (!roles) {
     return interaction.editReply('HATA: Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
   }
-  
+ c
   const sortedRoles = roles.sort((a, b) => a.rank - b.rank);
   const currentIndex = sortedRoles.findIndex(r => r.rank === currentRank.rank);
   

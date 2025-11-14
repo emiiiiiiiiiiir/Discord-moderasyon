@@ -227,6 +227,69 @@ async function sendRankChangeWebhook(data) {
   }
 }
 
+async function sendBranchRequestWebhook(data) {
+  if (!config.webhookUrl || config.webhookUrl === 'WEBHOOK_URL_BURAYA') {
+    return;
+  }
+  
+  try {
+    const embed = {
+      title: data.decision === 'kabul' ? 'Branş İsteği Kabul Edildi' : 'Branş İsteği Reddedildi',
+      color: data.decision === 'kabul' ? 0x57F287 : 0xED4245,
+      fields: [
+        {
+          name: 'Hedef Kullanıcı',
+          value: data.targetUser,
+          inline: true
+        },
+        {
+          name: 'İşlemi Yapan',
+          value: `${data.manager} (${data.managerRank})`,
+          inline: true
+        },
+        {
+          name: '\u200b',
+          value: '\u200b',
+          inline: true
+        },
+        {
+          name: 'Branş',
+          value: data.branch,
+          inline: true
+        },
+        {
+          name: 'Karar',
+          value: data.decision === 'kabul' ? 'Kabul Edildi' : 'Reddedildi',
+          inline: true
+        },
+        {
+          name: '\u200b',
+          value: '\u200b',
+          inline: true
+        }
+      ],
+      timestamp: new Date().toISOString(),
+      footer: {
+        text: 'Branş İstek Log Sistemi'
+      }
+    };
+    
+    if (data.reason) {
+      embed.fields.push({
+        name: 'Sebep',
+        value: data.reason,
+        inline: false
+      });
+    }
+    
+    await axios.post(config.webhookUrl, {
+      embeds: [embed]
+    });
+  } catch (error) {
+    console.error('Webhook gönderim hatası:', error.message);
+  }
+}
+
 function cleanExpiredVerifications() {
   const verifications = loadPendingVerifications();
   const now = Date.now();
@@ -1082,8 +1145,17 @@ async function handleBranchRequest(interaction) {
   }
   
   if (result) {
+    await sendBranchRequestWebhook({
+      decision: decision,
+      targetUser: robloxNick,
+      manager: managerUsername,
+      managerRank: managerRank.name,
+      branch: branch,
+      reason: reason
+    });
+    
     const embed = new EmbedBuilder()
-      .setTitle(decision === 'kabul' ? '✅ İstek Kabul Edildi' : '❌ İstek Reddedildi')
+      .setTitle(decision === 'kabul' ? 'İstek Kabul Edildi' : 'İstek Reddedildi')
       .setDescription(`**${robloxNick}** kullanıcısının **${branch}** branşı isteği ${decision === 'kabul' ? 'kabul edildi' : 'reddedildi'}`)
       .addFields(
         { name: 'İlgili Kişi', value: `${managerUsername} (${managerRank.name})`, inline: true },

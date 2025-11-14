@@ -516,12 +516,17 @@ client.on('interactionCreate', async (interaction) => {
   } catch (error) {
     console.error(`Komut hatası (${commandName}):`, error);
     
-    const errorMessage = { content: 'HATA: Bir hata oluştu!', ephemeral: true };
-    
-    if (interaction.deferred || interaction.replied) {
-      await interaction.editReply(errorMessage.content);
-    } else {
-      await interaction.reply(errorMessage);
+    try {
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply('HATA: Bir hata oluştu!');
+      } else {
+        await interaction.reply({ 
+          content: 'HATA: Bir hata oluştu!', 
+          flags: 64
+        });
+      }
+    } catch (replyError) {
+      console.error('Hata mesajı gönderilemedi:', replyError.message);
     }
   }
 });

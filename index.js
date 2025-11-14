@@ -228,7 +228,11 @@ async function sendRankChangeWebhook(data) {
 }
 
 async function sendBranchRequestWebhook(data) {
-  if (!config.webhookUrl || config.webhookUrl === 'WEBHOOK_URL_BURAYA') {
+  const webhookUrl = config.branchWebhookUrl && config.branchWebhookUrl !== 'WEBHOOK_URL_BURAYA' 
+    ? config.branchWebhookUrl 
+    : config.webhookUrl;
+    
+  if (!webhookUrl || webhookUrl === 'WEBHOOK_URL_BURAYA') {
     return;
   }
   
@@ -282,7 +286,7 @@ async function sendBranchRequestWebhook(data) {
       });
     }
     
-    await axios.post(config.webhookUrl, {
+    await axios.post(webhookUrl, {
       embeds: [embed]
     });
   } catch (error) {

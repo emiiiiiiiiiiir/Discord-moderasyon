@@ -67,7 +67,7 @@ function validateConfig() {
   }
   
   if (warnings.length > 0) {
-    console.warn('\n⚠️  Konfigürasyon Uyarıları:');
+    console.warn('\nKonfigürasyon Uyarıları:');
     warnings.forEach(w => console.warn(`  - ${w}`));
     console.warn('');
   } else {
@@ -159,21 +159,21 @@ async function sendRankChangeWebhook(data) {
   
   try {
     const embed = {
-      title: data.type === 'change' ? '🔄 Rütbe Değişikliği' : 
-             data.type === 'promotion' ? '⬆️ Terfi' : 
-             data.type === 'demotion' ? '⬇️ Tenzil' : 
-             '🔀 Branş Rütbe Değişikliği',
+      title: data.type === 'change' ? 'Rütbe Değişikliği' : 
+             data.type === 'promotion' ? 'Terfi' : 
+             data.type === 'demotion' ? 'Tenzil' : 
+             'Branş Rütbe Değişikliği',
       color: data.type === 'promotion' ? 0x57F287 : 
              data.type === 'demotion' ? 0xED4245 : 
              0x5865F2,
       fields: [
         {
-          name: '👤 Hedef Kullanıcı',
+          name: 'Hedef Kullanıcı',
           value: data.targetUser,
           inline: true
         },
         {
-          name: '👮 İşlemi Yapan',
+          name: 'İşlemi Yapan',
           value: `${data.manager} (${data.managerRank})`,
           inline: true
         },
@@ -191,21 +191,21 @@ async function sendRankChangeWebhook(data) {
     
     if (data.oldRank) {
       embed.fields.push({
-        name: '📊 Eski Rütbe',
+        name: 'Eski Rütbe',
         value: data.oldRank,
         inline: true
       });
     }
     
     embed.fields.push({
-      name: '📊 Yeni Rütbe',
+      name: 'Yeni Rütbe',
       value: data.newRank,
       inline: true
     });
     
     if (data.branch) {
       embed.fields.push({
-        name: '🏢 Branş',
+        name: 'Branş',
         value: data.branch,
         inline: true
       });
@@ -213,7 +213,7 @@ async function sendRankChangeWebhook(data) {
     
     if (data.reason) {
       embed.fields.push({
-        name: '📝 Sebep',
+        name: 'Sebep',
         value: data.reason,
         inline: false
       });

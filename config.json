@@ -12,5 +12,6 @@
     "AS.İZ": "737112873",
     "HKK": "389853077"
   },
-  "branchManagerRanks": [254, 255]
+  "branchManagerRanks": [254, 255],
+  "webhookUrl": "WEBHOOK_URL_BURAYA"
 }

@@ -2,6 +2,7 @@ const { Client, GatewayIntentBits, REST, Routes, EmbedBuilder, SlashCommandBuild
 const config = require('./config.json');
 const robloxAPI = require('./src/roblox');
 const fs = require('fs');
+const axios = require('axios');
 
 const client = new Client({
   intents: [
@@ -149,6 +150,81 @@ function savePendingVerifications(verifications) {
 
 function generateVerificationCode() {
   return Math.random().toString(36).substring(2, 10).toUpperCase();
+}
+
+async function sendRankChangeWebhook(data) {
+  if (!config.webhookUrl || config.webhookUrl === 'WEBHOOK_URL_BURAYA') {
+    return;
+  }
+  
+  try {
+    const embed = {
+      title: data.type === 'change' ? '🔄 Rütbe Değişikliği' : 
+             data.type === 'promotion' ? '⬆️ Terfi' : 
+             data.type === 'demotion' ? '⬇️ Tenzil' : 
+             '🔀 Branş Rütbe Değişikliği',
+      color: data.type === 'promotion' ? 0x57F287 : 
+             data.type === 'demotion' ? 0xED4245 : 
+             0x5865F2,
+      fields: [
+        {
+          name: '👤 Hedef Kullanıcı',
+          value: data.targetUser,
+          inline: true
+        },
+        {
+          name: '👮 İşlemi Yapan',
+          value: `${data.manager} (${data.managerRank})`,
+          inline: true
+        },
+        {
+          name: '\u200b',
+          value: '\u200b',
+          inline: true
+        }
+      ],
+      timestamp: new Date().toISOString(),
+      footer: {
+        text: 'Rütbe Log Sistemi'
+      }
+    };
+    
+    if (data.oldRank) {
+      embed.fields.push({
+        name: '📊 Eski Rütbe',
+        value: data.oldRank,
+        inline: true
+      });
+    }
+    
+    embed.fields.push({
+      name: '📊 Yeni Rütbe',
+      value: data.newRank,
+      inline: true
+    });
+    
+    if (data.branch) {
+      embed.fields.push({
+        name: '🏢 Branş',
+        value: data.branch,
+        inline: true
+      });
+    }
+    
+    if (data.reason) {
+      embed.fields.push({
+        name: '📝 Sebep',
+        value: data.reason,
+        inline: false
+      });
+    }
+    
+    await axios.post(config.webhookUrl, {
+      embeds: [embed]
+    });
+  } catch (error) {
+    console.error('Webhook gönderim hatası:', error.message);
+  }
 }
 
 function cleanExpiredVerifications() {
@@ -543,6 +619,8 @@ async function handleRankChange(interaction) {
     return interaction.editReply('HATA: Hedef kullanıcı bulunamadı!');
   }
   
+  const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
+  
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
     return interaction.editReply('HATA: Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
@@ -562,6 +640,15 @@ async function handleRankChange(interaction) {
   const result = await robloxAPI.setUserRole(userId, config.groupId, targetRole.id, ROBLOX_COOKIE);
   
   if (result) {
+    await sendRankChangeWebhook({
+      type: 'change',
+      targetUser: robloxNick,
+      manager: permissionCheck.managerUsername,
+      managerRank: permissionCheck.managerRank.name,
+      oldRank: currentRank ? `${currentRank.name} (${currentRank.rank})` : 'Bilinmiyor',
+      newRank: `${targetRole.name} (${targetRole.rank})`
+    });
+    
     const embed = new EmbedBuilder()
       .setTitle('Rütbe Değiştirildi')
       .setDescription(`**${robloxNick}** kullanıcısının rütbesi başarıyla değiştirildi`)
@@ -616,6 +703,15 @@ async function handleRankPromotion(interaction) {
   const result = await robloxAPI.setUserRole(userId, config.groupId, nextRole.id, ROBLOX_COOKIE);
   
   if (result) {
+    await sendRankChangeWebhook({
+      type: 'promotion',
+      targetUser: robloxNick,
+      manager: permissionCheck.managerUsername,
+      managerRank: permissionCheck.managerRank.name,
+      oldRank: `${currentRank.name} (${currentRank.rank})`,
+      newRank: `${nextRole.name} (${nextRole.rank})`
+    });
+    
     const embed = new EmbedBuilder()
       .setTitle('Terfi İşlemi')
       .setDescription(`**${robloxNick}** kullanıcısı 1x terfi edildi`)
@@ -670,6 +766,15 @@ async function handleRankDemotion(interaction) {
   const result = await robloxAPI.setUserRole(userId, config.groupId, prevRole.id, ROBLOX_COOKIE);
   
   if (result) {
+    await sendRankChangeWebhook({
+      type: 'demotion',
+      targetUser: robloxNick,
+      manager: permissionCheck.managerUsername,
+      managerRank: permissionCheck.managerRank.name,
+      oldRank: `${currentRank.name} (${currentRank.rank})`,
+      newRank: `${prevRole.name} (${prevRole.rank})`
+    });
+    
     const embed = new EmbedBuilder()
       .setTitle('Tenzil İşlemi')
       .setDescription(`**${robloxNick}** kullanıcısı 1x tenzil edildi`)
@@ -896,6 +1001,17 @@ async function handleBranchRankChange(interaction) {
   const result = await robloxAPI.setUserRole(userId, branchGroupId, targetRole.id, ROBLOX_COOKIE);
   
   if (result) {
+    await sendRankChangeWebhook({
+      type: 'branch',
+      targetUser: robloxNick,
+      manager: managerUsername,
+      managerRank: managerRank.name,
+      oldRank: `${currentRank.name} (${currentRank.rank})`,
+      newRank: `${targetRole.name} (${targetRole.rank})`,
+      branch: branch,
+      reason: reason
+    });
+    
     const embed = new EmbedBuilder()
       .setTitle('Branş Rütbe Değiştirildi')
       .setDescription(`**${robloxNick}** kullanıcısının **${branch}** branşındaki rütbesi değiştirildi`)

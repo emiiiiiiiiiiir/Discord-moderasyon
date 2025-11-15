@@ -1584,8 +1584,8 @@ async function handleTicketCategorySelect(interaction) {
   };
   
   const categoryName = categoryNames[category] || 'Destek';
-  const ticketNumber = Object.keys(activeTickets).length + 1;
-  const channelName = `ticket-${ticketNumber}`;
+  const username = interaction.user.username.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+  const channelName = `ticket-${username}`;
   
   try {
     let parentId = null;

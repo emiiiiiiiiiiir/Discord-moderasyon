@@ -526,11 +526,7 @@ const commands = [
   
   new SlashCommandBuilder()
     .setName('ticket-setup')
-    .setDescription('Destek sistemi mesajını gönderir'),
-  
-  new SlashCommandBuilder()
-    .setName('ticket-kapat')
-    .setDescription('Açık olan ticket kanalını kapatır')
+    .setDescription('Destek sistemi mesajını gönderir')
 ].map(command => command.toJSON());
 
 console.log('=== Discord Bot Başlatılıyor ===\n');
@@ -627,9 +623,6 @@ client.on('interactionCreate', async (interaction) => {
           break;
         case 'ticket-setup':
           await handleTicketSetup(interaction);
-          break;
-        case 'ticket-kapat':
-          await handleTicketClose(interaction);
           break;
       }
     } catch (error) {
@@ -1612,11 +1605,17 @@ async function handleTicketCategorySelect(interaction) {
     
     const closeButton = new ButtonBuilder()
       .setCustomId('close_ticket')
-      .setLabel('Ticket Kapat')
+      .setLabel('Kapat')
       .setStyle(ButtonStyle.Danger)
       .setEmoji('🔒');
     
-    const row = new ActionRowBuilder().addComponents(closeButton);
+    const claimButton = new ButtonBuilder()
+      .setCustomId('claim_ticket')
+      .setLabel('Ticket Al')
+      .setStyle(ButtonStyle.Success)
+      .setEmoji('✋');
+    
+    const row = new ActionRowBuilder().addComponents(closeButton, claimButton);
     
     await ticketChannel.send({ 
       content: `${interaction.user} ${config.supportRoleIds.map(id => `<@&${id}>`).join(' ')}`,
@@ -1627,7 +1626,8 @@ async function handleTicketCategorySelect(interaction) {
     activeTickets[userId] = {
       channelId: ticketChannel.id,
       category: category,
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      claimedBy: null
     };
     saveActiveTickets(activeTickets);
     
@@ -1715,9 +1715,74 @@ async function handleTicketClose(interaction) {
   }, 5000);
 }
 
+async function handleTicketClaim(interaction) {
+  await interaction.deferReply();
+  
+  const activeTickets = loadActiveTickets();
+  const userId = interaction.user.id;
+  
+  let ticketToClaim = null;
+  let ticketOwner = null;
+  
+  for (const [ownerId, ticket] of Object.entries(activeTickets)) {
+    if (ticket.channelId === interaction.channel.id) {
+      ticketToClaim = ticket;
+      ticketOwner = ownerId;
+      break;
+    }
+  }
+  
+  if (!ticketToClaim) {
+    return interaction.editReply({ content: 'Bu kanal bir ticket kanalı değil!', ephemeral: true });
+  }
+  
+  const hasPermission = config.supportRoleIds.some(roleId => interaction.member.roles.cache.has(roleId));
+  
+  if (!hasPermission) {
+    return interaction.editReply({ content: 'Bu ticketı almak için destek yetkisine sahip olmalısınız!', ephemeral: true });
+  }
+  
+  if (ticketToClaim.claimedBy) {
+    const claimedUser = await interaction.guild.members.fetch(ticketToClaim.claimedBy).catch(() => null);
+    const claimedUsername = claimedUser ? claimedUser.user.tag : 'Bilinmeyen Kullanıcı';
+    return interaction.editReply({ content: `Bu ticket zaten ${claimedUsername} tarafından alınmış!`, ephemeral: true });
+  }
+  
+  activeTickets[ticketOwner].claimedBy = userId;
+  saveActiveTickets(activeTickets);
+  
+  const embed = new EmbedBuilder()
+    .setDescription(`✅ ${interaction.user} bu ticket'ı üstlendi ve ilgilenecek.`)
+    .setColor(0x57F287)
+    .setTimestamp();
+  
+  await interaction.editReply({ embeds: [embed] });
+  
+  if (config.ticketLogChannelId && config.ticketLogChannelId !== 'TICKET_LOG_CHANNEL_ID') {
+    const logChannel = interaction.guild.channels.cache.get(config.ticketLogChannelId);
+    if (logChannel) {
+      const logEmbed = new EmbedBuilder()
+        .setTitle('Ticket Alındı')
+        .addFields(
+          { name: 'Kanal', value: `${interaction.channel}`, inline: true },
+          { name: 'Yetkili', value: `${interaction.user.tag}`, inline: true },
+          { name: 'Ticket Sahibi', value: `<@${ticketOwner}>`, inline: true }
+        )
+        .setColor(0x57F287)
+        .setTimestamp();
+      
+      await logChannel.send({ embeds: [logEmbed] });
+    }
+  }
+}
+
 client.on('interactionCreate', async (interaction) => {
-  if (interaction.isButton() && interaction.customId === 'close_ticket') {
-    await handleTicketClose(interaction);
+  if (interaction.isButton()) {
+    if (interaction.customId === 'close_ticket') {
+      await handleTicketClose(interaction);
+    } else if (interaction.customId === 'claim_ticket') {
+      await handleTicketClaim(interaction);
+    }
   }
 });
 

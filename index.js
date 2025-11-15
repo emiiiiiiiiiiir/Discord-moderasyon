@@ -1481,7 +1481,7 @@ async function handleTicketSetup(interaction) {
   
   const embed = new EmbedBuilder()
     .setTitle('Turkish Armed Forces')
-    .setDescription('**Moderatör Bileti**\nDiscord ile ilgili yaşanan sorunlar ve yardım talepleri için bu bileti seç.\n\n**Gamepass Bileti**\nRobux ile rütbe, branş üyeliği alımında bu bilet türünü seç.\n\n**Oyun Destek Bileti**\nOyunumuzda yaşanan sorunlar hakkında yardım almak için bu bileti seç.\n\n**Rütbe Destek Bileti**\nRütbeniz hakkında yaşanan sorunlar hakkında yardım almak için bu bileti seç.(Rütbem Gitti)\n\n**Reklam Destek Bileti**\nDiscord veya Oyun üzerinde reklam yapan insanları şikayet edebilmek için bu bilet türünü seç.')
+    .setDescription('**Moderatör Bileti**\nDiscord ile ilgili yaşanan sorunlar ve yardım talepleri için bu bileti seç.\n\n**Gamepass Bileti**\nRobux ile rütbe, branş üyeliği alımında bu bilet türünü seç.\n\n**Oyun Destek Bileti**\nOyunumuzda yaşanan sorunlar hakkında yardım almak için bu bileti seç.\n\n**Rütbe Destek Bileti**\nRütbeniz hakkında yaşanan sorunlar hakkında yardım almak için bu bileti seç.(Rütbem Gitti)\n\n**Reklam Destek Bileti**\nDiscord veya Oyun üzerinde reklam yapan insanları şikayet edebilmek için bu bilet türünü seç.\n\n**Geri Dönüş&Transfer Bileti**\nGeri dönüş veya transfer işlemleri hakkında destek almak için bu bileti seç.')
     .setColor(0x5865F2)
     .setFooter({ text: 'Destek Sistemi' });
   
@@ -1535,6 +1535,12 @@ async function handleTicketMenuButton(interaction) {
         description: 'Discord veya Oyun üzerinde reklam yapan insanları şikayet edebilmek için.',
         value: 'ad_support',
         emoji: '🔧'
+      },
+      {
+        label: 'Geri Dönüş&Transfer Bileti',
+        description: 'Geri dönüş veya transfer işlemleri hakkında destek almak için bu bileti seç.',
+        value: 'return_transfer',
+        emoji: '🔄'
       }
     ]);
   
@@ -1564,7 +1570,8 @@ async function handleTicketCategorySelect(interaction) {
     'gamepass': 'Gamepass',
     'game_support': 'Oyun Destek',
     'rank_support': 'Rütbe Destek',
-    'ad_support': 'Reklam Destek'
+    'ad_support': 'Reklam Destek',
+    'return_transfer': 'Geri Dönüş&Transfer'
   };
   
   const categoryName = categoryNames[category] || 'Destek';
@@ -1574,8 +1581,8 @@ async function handleTicketCategorySelect(interaction) {
   try {
     let parentId = null;
     if (config.ticketCategoryId && config.ticketCategoryId !== 'TICKET_CATEGORY_ID') {
-      const category = interaction.guild.channels.cache.get(config.ticketCategoryId);
-      if (category && category.type === ChannelType.GuildCategory) {
+      const categoryChannel = interaction.guild.channels.cache.get(config.ticketCategoryId);
+      if (categoryChannel && categoryChannel.type === ChannelType.GuildCategory) {
         parentId = config.ticketCategoryId;
       }
     }

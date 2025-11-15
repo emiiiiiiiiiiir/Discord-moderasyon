@@ -1572,10 +1572,18 @@ async function handleTicketCategorySelect(interaction) {
   const channelName = `ticket-${ticketNumber}`;
   
   try {
+    let parentId = null;
+    if (config.ticketCategoryId && config.ticketCategoryId !== 'TICKET_CATEGORY_ID') {
+      const category = interaction.guild.channels.cache.get(config.ticketCategoryId);
+      if (category && category.type === ChannelType.GuildCategory) {
+        parentId = config.ticketCategoryId;
+      }
+    }
+    
     const ticketChannel = await interaction.guild.channels.create({
       name: channelName,
       type: ChannelType.GuildText,
-      parent: config.ticketCategoryId !== 'TICKET_CATEGORY_ID' ? config.ticketCategoryId : null,
+      parent: parentId,
       permissionOverwrites: [
         {
           id: interaction.guild.id,

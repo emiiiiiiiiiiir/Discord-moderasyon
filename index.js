@@ -1479,4 +1479,246 @@ async function handleAnnouncement(interaction) {
   await interaction.editReply(sonucMesaji);
 }
 
+async function handleTicketSetup(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+  
+  if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+    return interaction.editReply('Bu komutu kullanmak için yönetici yetkisine sahip olmalısınız!');
+  }
+  
+  const embed = new EmbedBuilder()
+    .setTitle('Turkish Armed Forces')
+    .setDescription('**Moderatör Bileti**\nDiscord ile ilgili yaşanan sorunlar ve yardım talepleri için bu bileti seç.\n\n**Gamepass Bileti**\nRobux ile rütbe, branş üyeliği alımında bu bilet türünü seç.\n\n**Oyun Destek Bileti**\nOyunumuzda yaşanan sorunlar hakkında yardım almak için bu bileti seç.\n\n**Rütbe Destek Bileti**\nRütbeniz hakkında yaşanan sorunlar hakkında yardım almak için bu bileti seç.(Rütbem Gitti)\n\n**Reklam Destek Bileti**\nDiscord veya Oyun üzerinde reklam yapan insanları şikayet edebilmek için bu bilet türünü seç.')
+    .setColor(0x5865F2)
+    .setImage('https://i.imgur.com/placeholder.png')
+    .setFooter({ text: 'Destek Sistemi' });
+  
+  const button = new ButtonBuilder()
+    .setCustomId('open_ticket_menu')
+    .setLabel('Destek Kategorisi Seç!')
+    .setStyle(ButtonStyle.Secondary)
+    .setEmoji('🎫');
+  
+  const row = new ActionRowBuilder().addComponents(button);
+  
+  await interaction.channel.send({ embeds: [embed], components: [row] });
+  await interaction.editReply('Destek sistemi mesajı başarıyla gönderildi!');
+}
+
+async function handleTicketMenuButton(interaction) {
+  const selectMenu = new StringSelectMenuBuilder()
+    .setCustomId('ticket_category')
+    .setPlaceholder('Destek kategorisi seçiniz')
+    .addOptions([
+      {
+        label: 'Moderatör Bileti',
+        description: 'Discord ile ilgili yaşanan sorunlar ve yardım talepleri için bu bileti seç.',
+        value: 'moderator',
+        emoji: '🛡️'
+      },
+      {
+        label: 'Gamepass Bileti',
+        description: 'Robux ile rütbe, branş üyeliği alımında bu bilet türünü seç.',
+        value: 'gamepass',
+        emoji: '🎮'
+      },
+      {
+        label: 'Oyun Destek Bileti',
+        description: 'Oyunumuzda yaşanan sorunlar hakkında yardım almak için bu bileti seç.',
+        value: 'game_support',
+        emoji: '🎲'
+      },
+      {
+        label: 'Rütbe Destek Bileti',
+        description: 'Rütbeniz hakkında yaşanan sorunlar hakkında yardım almak için bu bileti seç.',
+        value: 'rank_support',
+        emoji: '👤'
+      },
+      {
+        label: 'Reklam Destek Bileti',
+        description: 'Discord veya Oyun üzerinde reklam yapan insanları şikayet edebilmek için.',
+        value: 'ad_support',
+        emoji: '🔧'
+      }
+    ]);
+  
+  const row = new ActionRowBuilder().addComponents(selectMenu);
+  
+  await interaction.reply({ 
+    content: 'Lütfen destek kategorisi seçiniz:', 
+    components: [row], 
+    ephemeral: true 
+  });
+}
+
+async function handleTicketCategorySelect(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+  
+  const category = interaction.values[0];
+  const userId = interaction.user.id;
+  
+  const activeTickets = loadActiveTickets();
+  
+  if (activeTickets[userId]) {
+    return interaction.editReply('Zaten açık bir ticketınız var! Önce mevcut ticketı kapatmalısınız.');
+  }
+  
+  const categoryNames = {
+    'moderator': 'Moderatör',
+    'gamepass': 'Gamepass',
+    'game_support': 'Oyun Destek',
+    'rank_support': 'Rütbe Destek',
+    'ad_support': 'Reklam Destek'
+  };
+  
+  const categoryName = categoryNames[category] || 'Destek';
+  const ticketNumber = Object.keys(activeTickets).length + 1;
+  const channelName = `ticket-${ticketNumber}`;
+  
+  try {
+    const ticketChannel = await interaction.guild.channels.create({
+      name: channelName,
+      type: ChannelType.GuildText,
+      parent: config.ticketCategoryId !== 'TICKET_CATEGORY_ID' ? config.ticketCategoryId : null,
+      permissionOverwrites: [
+        {
+          id: interaction.guild.id,
+          deny: [PermissionFlagsBits.ViewChannel]
+        },
+        {
+          id: userId,
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ReadMessageHistory
+          ]
+        },
+        ...config.supportRoleIds.map(roleId => ({
+          id: roleId,
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+            PermissionFlagsBits.ReadMessageHistory
+          ]
+        }))
+      ]
+    });
+    
+    const welcomeEmbed = new EmbedBuilder()
+      .setTitle(`${categoryName} Ticket`)
+      .setDescription(`Merhaba ${interaction.user}, destek ekibimiz en kısa sürede size yardımcı olacaktır.\n\nKategori: **${categoryName}**\n\nLütfen sorununuzu detaylı bir şekilde açıklayın.`)
+      .setColor(0x5865F2)
+      .setTimestamp();
+    
+    const closeButton = new ButtonBuilder()
+      .setCustomId('close_ticket')
+      .setLabel('Ticket Kapat')
+      .setStyle(ButtonStyle.Danger)
+      .setEmoji('🔒');
+    
+    const row = new ActionRowBuilder().addComponents(closeButton);
+    
+    await ticketChannel.send({ 
+      content: `${interaction.user} ${config.supportRoleIds.map(id => `<@&${id}>`).join(' ')}`,
+      embeds: [welcomeEmbed],
+      components: [row]
+    });
+    
+    activeTickets[userId] = {
+      channelId: ticketChannel.id,
+      category: category,
+      createdAt: Date.now()
+    };
+    saveActiveTickets(activeTickets);
+    
+    await interaction.editReply(`Ticketınız başarıyla oluşturuldu: ${ticketChannel}`);
+    
+    if (config.ticketLogChannelId && config.ticketLogChannelId !== 'TICKET_LOG_CHANNEL_ID') {
+      const logChannel = interaction.guild.channels.cache.get(config.ticketLogChannelId);
+      if (logChannel) {
+        const logEmbed = new EmbedBuilder()
+          .setTitle('Yeni Ticket Açıldı')
+          .addFields(
+            { name: 'Kullanıcı', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
+            { name: 'Kategori', value: categoryName, inline: true },
+            { name: 'Kanal', value: `${ticketChannel}`, inline: true }
+          )
+          .setColor(0x57F287)
+          .setTimestamp();
+        
+        await logChannel.send({ embeds: [logEmbed] });
+      }
+    }
+  } catch (error) {
+    console.error('Ticket kanalı oluşturma hatası:', error);
+    await interaction.editReply('Ticket kanalı oluşturulurken bir hata oluştu! Lütfen bot yetkilerini kontrol edin.');
+  }
+}
+
+async function handleTicketClose(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+  
+  const activeTickets = loadActiveTickets();
+  const userId = interaction.user.id;
+  
+  let ticketToClose = null;
+  let ticketOwner = null;
+  
+  for (const [ownerId, ticket] of Object.entries(activeTickets)) {
+    if (ticket.channelId === interaction.channel.id) {
+      ticketToClose = ticket;
+      ticketOwner = ownerId;
+      break;
+    }
+  }
+  
+  if (!ticketToClose) {
+    return interaction.editReply('Bu kanal bir ticket kanalı değil!');
+  }
+  
+  const isOwner = userId === ticketOwner;
+  const hasPermission = interaction.member.permissions.has(PermissionFlagsBits.ManageChannels) ||
+                        config.supportRoleIds.some(roleId => interaction.member.roles.cache.has(roleId));
+  
+  if (!isOwner && !hasPermission) {
+    return interaction.editReply('Bu ticketı kapatma yetkiniz yok!');
+  }
+  
+  await interaction.editReply('Ticket 5 saniye içinde kapatılacak...');
+  
+  if (config.ticketLogChannelId && config.ticketLogChannelId !== 'TICKET_LOG_CHANNEL_ID') {
+    const logChannel = interaction.guild.channels.cache.get(config.ticketLogChannelId);
+    if (logChannel) {
+      const logEmbed = new EmbedBuilder()
+        .setTitle('Ticket Kapatıldı')
+        .addFields(
+          { name: 'Kapatılan Kanal', value: interaction.channel.name, inline: true },
+          { name: 'Kapatan', value: `${interaction.user.tag}`, inline: true },
+          { name: 'Ticket Sahibi', value: `<@${ticketOwner}>`, inline: true }
+        )
+        .setColor(0xED4245)
+        .setTimestamp();
+      
+      await logChannel.send({ embeds: [logEmbed] });
+    }
+  }
+  
+  delete activeTickets[ticketOwner];
+  saveActiveTickets(activeTickets);
+  
+  setTimeout(async () => {
+    try {
+      await interaction.channel.delete();
+    } catch (error) {
+      console.error('Ticket kanalı silme hatası:', error);
+    }
+  }, 5000);
+}
+
+client.on('interactionCreate', async (interaction) => {
+  if (interaction.isButton() && interaction.customId === 'close_ticket') {
+    await handleTicketClose(interaction);
+  }
+});
+
 client.login(DISCORD_TOKEN);

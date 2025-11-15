@@ -1,4 +1,17 @@
-const { Client, GatewayIntentBits, REST, Routes, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
+const { 
+  Client, 
+  GatewayIntentBits, 
+  REST, 
+  Routes, 
+  EmbedBuilder, 
+  SlashCommandBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+  ChannelType,
+  PermissionFlagsBits,
+  StringSelectMenuBuilder
+} = require('discord.js');
 const config = require('./config.json');
 const robloxAPI = require('./src/roblox');
 const fs = require('fs');
@@ -20,6 +33,7 @@ const ROBLOX_COOKIE = process.env.ROBLOX_COOKIE;
 
 const ACCOUNT_LINKS_FILE = './account_links.json';
 const PENDING_VERIFICATIONS_FILE = './pending_verifications.json';
+const ACTIVE_TICKETS_FILE = './active_tickets.json';
 
 function validateEnvironmentVariables() {
   const requiredVars = [
@@ -150,6 +164,31 @@ function savePendingVerifications(verifications) {
 
 function generateVerificationCode() {
   return Math.random().toString(36).substring(2, 10).toUpperCase();
+}
+
+function loadActiveTickets() {
+  try {
+    if (fs.existsSync(ACTIVE_TICKETS_FILE)) {
+      const data = fs.readFileSync(ACTIVE_TICKETS_FILE, 'utf8');
+      if (!data || data.trim() === '') {
+        return {};
+      }
+      return JSON.parse(data);
+    }
+  } catch (error) {
+    console.error('Aktif ticketlar yüklenirken hata:', error.message);
+  }
+  return {};
+}
+
+function saveActiveTickets(tickets) {
+  try {
+    fs.writeFileSync(ACTIVE_TICKETS_FILE, JSON.stringify(tickets, null, 2), 'utf8');
+    return true;
+  } catch (error) {
+    console.error('Aktif ticketlar kaydedilirken hata:', error);
+    return false;
+  }
 }
 
 async function sendRankChangeWebhook(data) {
@@ -483,7 +522,15 @@ const commands = [
       option.setName('kanal_adi')
         .setDescription('Duyurunun gönderileceği kanal adı (örn: duyurular, genel)')
         .setRequired(true)
-    )
+    ),
+  
+  new SlashCommandBuilder()
+    .setName('ticket-setup')
+    .setDescription('Destek sistemi mesajını gönderir'),
+  
+  new SlashCommandBuilder()
+    .setName('ticket-kapat')
+    .setDescription('Açık olan ticket kanalını kapatır')
 ].map(command => command.toJSON());
 
 console.log('=== Discord Bot Başlatılıyor ===\n');
@@ -534,66 +581,92 @@ client.on('clientReady', async () => {
 });
 
 client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+  if (interaction.isChatInputCommand()) {
+    const { commandName } = interaction;
 
-  const { commandName } = interaction;
-
-  try {
-    switch (commandName) {
-      case 'rütbe-sorgu':
-        await handleRankQuery(interaction);
-        break;
-      case 'rütbe-değiştir':
-        await handleRankChange(interaction);
-        break;
-      case 'rütbe-terfi':
-        await handleRankPromotion(interaction);
-        break;
-      case 'rütbe-tenzil':
-        await handleRankDemotion(interaction);
-        break;
-      case 'tamyasak':
-        await handleBan(interaction);
-        break;
-      case 'tamyasak-kaldır':
-        await handleUnban(interaction);
-        break;
-      case 'aktiflik-sorgu':
-        await handleActivityQuery(interaction);
-        break;
-      case 'roblox-bağla':
-        await handleRobloxLink(interaction);
-        break;
-      case 'roblox-değiştir':
-        await handleRobloxChange(interaction);
-        break;
-      case 'grup-listele':
-        await handleGroupList(interaction);
-        break;
-      case 'branş-istek':
-        await handleBranchRequest(interaction);
-        break;
-      case 'branş-rütbe-değiştir':
-        await handleBranchRankChange(interaction);
-        break;
-      case 'duyuru':
-        await handleAnnouncement(interaction);
-        break;
-    }
-  } catch (error) {
-    console.error(`Komut hatası (${commandName}):`, error);
-    
     try {
-      if (interaction.deferred || interaction.replied) {
-        await interaction.editReply('HATA: Bir hata oluştu!');
-      } else {
-        await interaction.reply({ 
-          content: 'HATA: Bir hata oluştu!', 
-          flags: 64
-        });
+      switch (commandName) {
+        case 'rütbe-sorgu':
+          await handleRankQuery(interaction);
+          break;
+        case 'rütbe-değiştir':
+          await handleRankChange(interaction);
+          break;
+        case 'rütbe-terfi':
+          await handleRankPromotion(interaction);
+          break;
+        case 'rütbe-tenzil':
+          await handleRankDemotion(interaction);
+          break;
+        case 'tamyasak':
+          await handleBan(interaction);
+          break;
+        case 'tamyasak-kaldır':
+          await handleUnban(interaction);
+          break;
+        case 'aktiflik-sorgu':
+          await handleActivityQuery(interaction);
+          break;
+        case 'roblox-bağla':
+          await handleRobloxLink(interaction);
+          break;
+        case 'roblox-değiştir':
+          await handleRobloxChange(interaction);
+          break;
+        case 'grup-listele':
+          await handleGroupList(interaction);
+          break;
+        case 'branş-istek':
+          await handleBranchRequest(interaction);
+          break;
+        case 'branş-rütbe-değiştir':
+          await handleBranchRankChange(interaction);
+          break;
+        case 'duyuru':
+          await handleAnnouncement(interaction);
+          break;
+        case 'ticket-setup':
+          await handleTicketSetup(interaction);
+          break;
+        case 'ticket-kapat':
+          await handleTicketClose(interaction);
+          break;
       }
-    } catch (replyError) {
-      console.error('Hata mesajı gönderilemedi:', replyError.message);
+    } catch (error) {
+      console.error(`Komut hatası (${commandName}):`, error);
+      
+      try {
+        if (interaction.deferred || interaction.replied) {
+          await interaction.editReply('HATA: Bir hata oluştu!');
+        } else {
+          await interaction.reply({ 
+            content: 'HATA: Bir hata oluştu!', 
+            flags: 64
+          });
+        }
+      } catch (replyError) {
+        console.error('Hata mesajı gönderilemedi:', replyError.message);
+      }
+    }
+  }
+  else if (interaction.isButton()) {
+    try {
+      if (interaction.customId === 'open_ticket_menu') {
+        await handleTicketMenuButton(interaction);
+      }
+    } catch (error) {
+      console.error('Buton hatası:', error);
+      await interaction.reply({ content: 'HATA: Bir hata oluştu!', flags: 64 }).catch(() => {});
+    }
+  }
+  else if (interaction.isStringSelectMenu()) {
+    try {
+      if (interaction.customId === 'ticket_category') {
+        await handleTicketCategorySelect(interaction);
+      }
+    } catch (error) {
+      console.error('Select menu hatası:', error);
+      await interaction.reply({ content: 'HATA: Bir hata oluştu!', flags: 64 }).catch(() => {});
     }
   }
 });

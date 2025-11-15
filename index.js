@@ -1479,11 +1479,13 @@ async function handleTicketSetup(interaction) {
     return interaction.editReply('Bu komutu kullanmak için yönetici yetkisine sahip olmalısınız!');
   }
   
+  const ticketImageUrl = config.ticketImageUrl || 'https://cdn.discordapp.com/attachments/YOUR_CHANNEL_ID/YOUR_IMAGE_ID/image.jpg';
+  
   const embed = new EmbedBuilder()
     .setTitle('Turkish Armed Forces')
     .setDescription('**Moderatör Bileti**\nDiscord ile ilgili yaşanan sorunlar ve yardım talepleri için bu bileti seç.\n\n**Gamepass Bileti**\nRobux ile rütbe, branş üyeliği alımında bu bilet türünü seç.\n\n**Oyun Destek Bileti**\nOyunumuzda yaşanan sorunlar hakkında yardım almak için bu bileti seç.\n\n**Rütbe Destek Bileti**\nRütbeniz hakkında yaşanan sorunlar hakkında yardım almak için bu bileti seç.(Rütbem Gitti)\n\n**Reklam Destek Bileti**\nDiscord veya Oyun üzerinde reklam yapan insanları şikayet edebilmek için bu bilet türünü seç.')
     .setColor(0x5865F2)
-    .setImage('https://i.imgur.com/placeholder.png')
+    .setImage(ticketImageUrl)
     .setFooter({ text: 'Destek Sistemi' });
   
   const button = new ButtonBuilder()

@@ -17,5 +17,6 @@
   "branchWebhookUrl": "https://discord.com/api/webhooks/1438701679150108672/4XnwSUPcBEZr3pc8Y1GHVsz2ddTxsnMEws_swUxFSb2v46-BPDRZe5TMqXEVvGmUqnXD",
   "ticketCategoryId": "TICKET_CATEGORY_ID",
   "ticketLogChannelId": "TICKET_LOG_CHANNEL_ID",
-  "supportRoleIds": ["1420425067212574720", "1187266606057934878"]
+  "supportRoleIds": ["1420425067212574720", "1187266606057934878"],
+  "ticketImageUrl": "GORSEL_URL_BURAYA"
 }

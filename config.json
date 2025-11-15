@@ -15,8 +15,8 @@
   "branchManagerRanks": [254, 255],
   "webhookUrl": "https://discord.com/api/webhooks/1438698267071221801/wtiP-fo8ttaY1gwesfkNtsTiHKplddM34_rTyiiuO5TPeC52A8GXldRDkRDV1jIP7914",
   "branchWebhookUrl": "https://discord.com/api/webhooks/1438701679150108672/4XnwSUPcBEZr3pc8Y1GHVsz2ddTxsnMEws_swUxFSb2v46-BPDRZe5TMqXEVvGmUqnXD",
-  "ticketCategoryId": "TICKET_CATEGORY_ID",
-  "ticketLogChannelId": "TICKET_LOG_CHANNEL_ID",
-  "supportRoleIds": ["1420425067212574720", "1187266606057934878"],
-  "ticketImageUrl": "GORSEL_URL_BURAYA"
+  "ticketCategoryId": "1404513599577129063",
+  "ticketLogChannelId": "1404513603767500910",
+  "supportRoleIds": ["1430254758110826547", "1420425067212574720"],
+  "ticketImageUrl": "https://discord.com/channels/@me/1345716995794010162/1439342404682383440"
 }

@@ -646,6 +646,15 @@ client.on('interactionCreate', async (interaction) => {
     try {
       if (interaction.customId === 'open_ticket_menu') {
         await handleTicketMenuButton(interaction);
+      } else if (interaction.customId === 'close_ticket') {
+        await handleTicketClose(interaction);
+      } else if (interaction.customId === 'claim_ticket') {
+        await handleTicketClaim(interaction);
+      } else if (interaction.customId.startsWith('rate_ticket_')) {
+        const parts = interaction.customId.split('_');
+        const rating = parseInt(parts[2]);
+        const ticketOwnerId = parts[3];
+        await handleTicketRating(interaction, rating, ticketOwnerId);
       }
     } catch (error) {
       console.error('Buton hatası:', error);
@@ -1673,6 +1682,59 @@ async function handleTicketCategorySelect(interaction) {
   }
 }
 
+async function createTranscript(channel) {
+  try {
+    const messages = [];
+    let lastId;
+    
+    while (true) {
+      const options = { limit: 100 };
+      if (lastId) {
+        options.before = lastId;
+      }
+      
+      const fetchedMessages = await channel.messages.fetch(options);
+      if (fetchedMessages.size === 0) break;
+      
+      messages.push(...fetchedMessages.values());
+      lastId = fetchedMessages.last().id;
+      
+      if (fetchedMessages.size < 100) break;
+    }
+    
+    messages.reverse();
+    
+    let transcript = `TICKET TRANSCRIPT - ${channel.name}\n`;
+    transcript += `Oluşturulma: ${new Date().toLocaleString('tr-TR')}\n`;
+    transcript += `${'='.repeat(60)}\n\n`;
+    
+    for (const msg of messages) {
+      const timestamp = msg.createdAt.toLocaleString('tr-TR');
+      const author = msg.author.tag;
+      const content = msg.content || '[Mesaj içeriği yok]';
+      
+      transcript += `[${timestamp}] ${author}:\n${content}\n`;
+      
+      if (msg.attachments.size > 0) {
+        msg.attachments.forEach(att => {
+          transcript += `  📎 Ek: ${att.url}\n`;
+        });
+      }
+      
+      if (msg.embeds.length > 0) {
+        transcript += `  📋 ${msg.embeds.length} embed mesaj\n`;
+      }
+      
+      transcript += '\n';
+    }
+    
+    return transcript;
+  } catch (error) {
+    console.error('Transcript oluşturma hatası:', error);
+    return null;
+  }
+}
+
 async function handleTicketClose(interaction) {
   await interaction.deferReply({ ephemeral: true });
   
@@ -1702,7 +1764,68 @@ async function handleTicketClose(interaction) {
     return interaction.editReply('Bu ticketı kapatma yetkiniz yok!');
   }
   
-  await interaction.editReply('Ticket 5 saniye içinde kapatılacak...');
+  await interaction.editReply('Ticket kapatılıyor, transcript oluşturuluyor...');
+  
+  const transcript = await createTranscript(interaction.channel);
+  
+  const categoryNames = {
+    'moderator': 'Moderatör',
+    'gamepass': 'Gamepass',
+    'game_support': 'Oyun Destek',
+    'rank_support': 'Rütbe Destek',
+    'ad_support': 'Reklam Destek',
+    'return_transfer': 'Geri Dönüş&Transfer'
+  };
+  const categoryName = categoryNames[ticketToClose.category] || 'Destek';
+  
+  try {
+    const ticketOwnerUser = await interaction.guild.members.fetch(ticketOwner);
+    
+    const dmEmbed = new EmbedBuilder()
+      .setTitle('🎫 Ticket Kapatıldı')
+      .setDescription(`**${categoryName}** kategorisindeki ticketınız kapatıldı.\n\nTicket konuşma geçmişi aşağıdadır.\n\nLütfen aldığınız hizmeti değerlendirin:`)
+      .setColor(0x5865F2)
+      .setTimestamp()
+      .setFooter({ text: 'Destek Sistemi' });
+    
+    const ratingButtons = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`rate_ticket_1_${ticketOwner}`)
+        .setLabel('⭐')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId(`rate_ticket_2_${ticketOwner}`)
+        .setLabel('⭐⭐')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
+        .setCustomId(`rate_ticket_3_${ticketOwner}`)
+        .setLabel('⭐⭐⭐')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId(`rate_ticket_4_${ticketOwner}`)
+        .setLabel('⭐⭐⭐⭐')
+        .setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId(`rate_ticket_5_${ticketOwner}`)
+        .setLabel('⭐⭐⭐⭐⭐')
+        .setStyle(ButtonStyle.Success)
+    );
+    
+    const dmMessage = { embeds: [dmEmbed], components: [ratingButtons] };
+    
+    if (transcript) {
+      const buffer = Buffer.from(transcript, 'utf-8');
+      dmMessage.files = [{
+        attachment: buffer,
+        name: `ticket-${interaction.channel.name}-transcript.txt`
+      }];
+    }
+    
+    await ticketOwnerUser.send(dmMessage);
+  } catch (error) {
+    console.error('DM gönderme hatası:', error);
+    await interaction.followUp({ content: 'Kullanıcıya DM gönderilemedi (DM\'leri kapalı olabilir).', ephemeral: true });
+  }
   
   if (config.ticketLogChannelId && config.ticketLogChannelId !== 'TICKET_LOG_CHANNEL_ID') {
     const logChannel = interaction.guild.channels.cache.get(config.ticketLogChannelId);
@@ -1712,12 +1835,23 @@ async function handleTicketClose(interaction) {
         .addFields(
           { name: 'Kapatılan Kanal', value: interaction.channel.name, inline: true },
           { name: 'Kapatan', value: `${interaction.user.tag}`, inline: true },
-          { name: 'Ticket Sahibi', value: `<@${ticketOwner}>`, inline: true }
+          { name: 'Ticket Sahibi', value: `<@${ticketOwner}>`, inline: true },
+          { name: 'Kategori', value: categoryName, inline: true }
         )
         .setColor(0xED4245)
         .setTimestamp();
       
-      await logChannel.send({ embeds: [logEmbed] });
+      const logMessage = { embeds: [logEmbed] };
+      
+      if (transcript) {
+        const buffer = Buffer.from(transcript, 'utf-8');
+        logMessage.files = [{
+          attachment: buffer,
+          name: `ticket-${interaction.channel.name}-transcript.txt`
+        }];
+      }
+      
+      await logChannel.send(logMessage);
     }
   }
   
@@ -1794,14 +1928,47 @@ async function handleTicketClaim(interaction) {
   }
 }
 
-client.on('interactionCreate', async (interaction) => {
-  if (interaction.isButton()) {
-    if (interaction.customId === 'close_ticket') {
-      await handleTicketClose(interaction);
-    } else if (interaction.customId === 'claim_ticket') {
-      await handleTicketClaim(interaction);
+async function handleTicketRating(interaction, rating, ticketOwnerId) {
+  try {
+    await interaction.deferReply({ ephemeral: true });
+    
+    if (interaction.user.id !== ticketOwnerId) {
+      return interaction.editReply('Bu değerlendirmeyi sadece ticket sahibi yapabilir!');
     }
+    
+    const ratingEmojis = {
+      1: '⭐',
+      2: '⭐⭐',
+      3: '⭐⭐⭐',
+      4: '⭐⭐⭐⭐',
+      5: '⭐⭐⭐⭐⭐'
+    };
+    
+    await interaction.editReply(`Değerlendirmeniz alındı: ${ratingEmojis[rating]}\n\nGeri bildiriminiz için teşekkür ederiz!`);
+    
+    await interaction.message.edit({
+      components: []
+    });
+    
+    if (config.ticketLogChannelId && config.ticketLogChannelId !== 'TICKET_LOG_CHANNEL_ID') {
+      const logChannel = await interaction.client.channels.fetch(config.ticketLogChannelId).catch(() => null);
+      if (logChannel) {
+        const ratingEmbed = new EmbedBuilder()
+          .setTitle('⭐ Ticket Değerlendirmesi')
+          .addFields(
+            { name: 'Kullanıcı', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
+            { name: 'Puan', value: ratingEmojis[rating], inline: true },
+            { name: 'Tarih', value: new Date().toLocaleString('tr-TR'), inline: true }
+          )
+          .setColor(rating >= 4 ? 0x57F287 : rating >= 3 ? 0xFEE75C : 0xED4245)
+          .setTimestamp();
+        
+        await logChannel.send({ embeds: [ratingEmbed] });
+      }
+    }
+  } catch (error) {
+    console.error('Puanlama hatası:', error);
   }
-});
+}
 
 client.login(DISCORD_TOKEN);

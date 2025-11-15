@@ -8,8 +8,18 @@ The bot provides comprehensive management features:
 - Rank management with Roblox usernames (query, change, promote, demote)
 - Discord user ban/unban using Discord user IDs
 - Game activity monitoring for the group's Roblox game
+- Ticket support system with transcript and rating features
 
 **Recent Changes**:
+
+*November 15, 2025*:
+- **Ticket System Enhancement**: Added "Geri Dönüş&Transfer Bileti" category to ticket panel (6 total ticket types)
+- **Ticket Transcript System**: Automatically generates and saves full conversation history when ticket is closed
+- **Ticket Rating System**: Users receive DM with transcript file and 1-5 star rating buttons after ticket closure
+- **Rating Validation**: Only ticket owner can rate their ticket experience
+- **Enhanced Logging**: Transcript files and rating results are logged to ticket log channel
+- **Bug Fix**: Fixed category ID variable name conflict that prevented tickets from appearing in configured category
+- **Bug Fix**: Fixed ticket panel embed image display by correcting image URL format
 
 *October 18, 2025*:
 - **Branch Rank Management System**: Added `/branş-rütbe-değiştir` command for managing ranks in branch groups

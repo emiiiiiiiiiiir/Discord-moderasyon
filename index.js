@@ -522,6 +522,11 @@ const commands = [
       option.setName('kanal_adi')
         .setDescription('Duyurunun gönderileceği kanal adı (örn: duyurular, genel)')
         .setRequired(true)
+    )
+    .addAttachmentOption(option =>
+      option.setName('görsel')
+        .setDescription('Duyuruya eklenecek görsel (opsiyonel)')
+        .setRequired(false)
     ),
   
   new SlashCommandBuilder()
@@ -1430,6 +1435,7 @@ async function handleAnnouncement(interaction) {
   
   const mesaj = interaction.options.getString('mesaj');
   const kanalAdi = interaction.options.getString('kanal_adi');
+  const görsel = interaction.options.getAttachment('görsel');
   const member = interaction.member;
   
   let rolAdi;
@@ -1454,7 +1460,13 @@ async function handleAnnouncement(interaction) {
       );
       
       if (kanal) {
-        await kanal.send(duyuruMetni);
+        const messageOptions = { content: duyuruMetni };
+        
+        if (görsel) {
+          messageOptions.files = [görsel.url];
+        }
+        
+        await kanal.send(messageOptions);
         successCount++;
       } else {
         failCount++;
@@ -1469,6 +1481,9 @@ async function handleAnnouncement(interaction) {
   
   let sonucMesaji = `**Duyuru Gönderildi**\n\n`;
   sonucMesaji += `Kanal: **${kanalAdi}**\n`;
+  if (görsel) {
+    sonucMesaji += `Görsel: ✓ Eklendi\n`;
+  }
   sonucMesaji += `✓ Başarılı: ${successCount} sunucu\n`;
   
   if (failCount > 0) {

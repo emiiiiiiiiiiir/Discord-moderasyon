@@ -429,6 +429,11 @@ const commands = [
       option.setName('kişi')
         .setDescription('Discord kullanıcı ID\'si')
         .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('sebep')
+        .setDescription('Yasak kaldırma sebebi')
+        .setRequired(true)
     ),
   
   new SlashCommandBuilder()
@@ -1007,39 +1012,39 @@ async function handleUnban(interaction) {
   await interaction.deferReply();
   
   const discordUserId = interaction.options.getString('kişi');
+  const reason = interaction.options.getString('sebep');
   
   try {
     const guilds = client.guilds.cache;
     
-    let successCount = 0;
-    let failCount = 0;
+    const successGuilds = [];
     const failedGuilds = [];
     
     for (const [guildId, guild] of guilds) {
       try {
-        await guild.members.unban(discordUserId, 'Tam yasak kaldırma komutu ile yasak kaldırıldı');
-        successCount++;
+        await guild.members.unban(discordUserId, `Tam yasak kaldırma: ${reason}`);
+        successGuilds.push(guild.name);
       } catch (error) {
-        failCount++;
         failedGuilds.push(guild.name);
         console.error(`${guild.name} sunucusunda yasak kaldırma hatası:`, error.message);
       }
     }
     
-    const embed = new EmbedBuilder()
-      .setTitle('Tam Yasak Kaldırıldı')
-      .setDescription(`**${discordUserId}** ID'li kullanıcının botun bulunduğu sunuculardan yasağı kaldırıldı`)
-      .addFields(
-        { name: 'Discord ID', value: discordUserId, inline: true },
-        { name: 'Başarılı', value: `${successCount} sunucu`, inline: true },
-        { name: 'Başarısız', value: `${failCount} sunucu`, inline: true }
-      )
-      .setColor(successCount > 0 ? 0x57F287 : 0xFEE75C)
-      .setTimestamp();
+    let description = `İşlem başarıyla tamamlandı\n\n<@${discordUserId}> Kişisinin TAK sunucularından yasaklamaları başarıyla kaldırıldı.\n\n**Sebep**\n${reason}\n\n`;
     
-    if (failedGuilds.length > 0 && failedGuilds.length <= 5) {
-      embed.addFields({ name: 'Başarısız Sunucular', value: failedGuilds.join(', '), inline: false });
+    if (successGuilds.length > 0) {
+      description += `**Yasağın kaldırıldığı sunucular:**\n${successGuilds.map(name => `• | ${name}`).join('\n')}\n\n`;
     }
+    
+    if (failedGuilds.length > 0) {
+      description += `**Yasağın kaldırılamadığı sunucular:**\n${failedGuilds.map(name => `• | ${name}`).join('\n')}`;
+    } else {
+      description += `**Yasağın kaldırılamadığı sunucular:**\nTüm sunucularda yasak kaldırıldı.`;
+    }
+    
+    const embed = new EmbedBuilder()
+      .setDescription(description)
+      .setColor(0x57F287);
     
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {

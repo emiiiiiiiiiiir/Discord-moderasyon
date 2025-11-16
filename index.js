@@ -749,6 +749,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
     allowed: true, 
     managerRank: managerRank,
     managerUsername: managerUsername,
+    managerId: managerId,
     maxAllowedRank: maxAllowedRank 
   };
 }
@@ -815,6 +816,10 @@ async function handleRankChange(interaction) {
     return interaction.editReply(permissionCheck.message);
   }
   
+  if (userId === permissionCheck.managerId) {
+    return interaction.editReply('HATA: Kendi rütbeni değiştiremezsin!');
+  }
+  
   const result = await robloxAPI.setUserRole(userId, config.groupId, targetRole.id, ROBLOX_COOKIE);
   
   if (result) {
@@ -873,6 +878,10 @@ async function handleRankPromotion(interaction) {
     return interaction.editReply(permissionCheck.message);
   }
   
+  if (userId === permissionCheck.managerId) {
+    return interaction.editReply('HATA: Kendi rütbeni değiştiremezsin!');
+  }
+  
   const result = await robloxAPI.setUserRole(userId, config.groupId, nextRole.id, ROBLOX_COOKIE);
   
   if (result) {
@@ -928,6 +937,10 @@ async function handleRankDemotion(interaction) {
   const permissionCheck = await checkRankPermissions(interaction.user.id, prevRole.rank);
   if (!permissionCheck.allowed) {
     return interaction.editReply(permissionCheck.message);
+  }
+  
+  if (userId === permissionCheck.managerId) {
+    return interaction.editReply('HATA: Kendi rütbeni değiştiremezsin!');
   }
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, prevRole.id, ROBLOX_COOKIE);
@@ -1146,6 +1159,10 @@ async function handleBranchRankChange(interaction) {
   const targetRole = branchRoles.find(r => r.name.toLowerCase() === targetRankName.toLowerCase());
   if (!targetRole) {
     return interaction.editReply(`HATA: **${targetRankName}** rütbesi **${branch}** branşında bulunamadı!`);
+  }
+  
+  if (userId === managerId) {
+    return interaction.editReply('HATA: Kendi rütbeni değiştiremezsin!');
   }
   
   const result = await robloxAPI.setUserRole(userId, branchGroupId, targetRole.id, ROBLOX_COOKIE);

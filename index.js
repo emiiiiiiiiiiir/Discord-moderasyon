@@ -807,7 +807,7 @@ async function handleRankChange(interaction) {
     });
     
     const oldRankText = currentRank ? currentRank.name : 'Bilinmiyor';
-    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${oldRankText} rütbesinden ${targetRole.name} rütbesine başarıyla değiştirdin.`;
+    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${oldRankText} rütbesinden ${targetRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: Anayin ammına goytum terfi hakettin`;
     
     await interaction.editReply(message);
   } else {
@@ -861,7 +861,7 @@ async function handleRankPromotion(interaction) {
       newRank: `${nextRole.name} (${nextRole.rank})`
     });
     
-    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${nextRole.name} rütbesine başarıyla değiştirdin.`;
+    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${nextRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: Anayin ammına goytum terfi hakettin`;
     
     await interaction.editReply(message);
   } else {
@@ -915,7 +915,7 @@ async function handleRankDemotion(interaction) {
       newRank: `${prevRole.name} (${prevRole.rank})`
     });
     
-    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${prevRole.name} rütbesine başarıyla değiştirdin.`;
+    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${prevRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: Anayin ammına goytum terfi hakettin`;
     
     await interaction.editReply(message);
   } else {
@@ -951,7 +951,8 @@ async function handleBan(interaction) {
     }
     
     const guildName = interaction.guild.name;
-    let message = `İşlem başarıyla tamamlandı\n\n@${user.username} Kişi başarıyla tüm ${guildName} sunucularından yasaklandı.\n\n**Sebep**\n${reason}\n\n`;
+    const bannedUserTag = user.tag;
+    let message = `İşlem başarıyla tamamlandı\n\n${bannedUserTag} Kişi başarıyla tüm ${guildName} sunucularından yasaklandı.\n\n**Sebep**\n${reason}\n\n`;
     
     if (successGuilds.length > 0) {
       message += `**Yasaklanan Sunucular**\n${successGuilds.map(name => `• | ${name}`).join('\n')}\n\n`;

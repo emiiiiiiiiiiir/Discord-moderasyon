@@ -1075,19 +1075,7 @@ async function handleActivityQuery(interaction) {
     return interaction.editReply('HATA: Oyun bilgisi alınamadı!');
   }
   
-  const embed = new EmbedBuilder()
-    .setTitle('🎮 Oyun Aktifliği')
-    .setDescription(`**${activity.name}** oyununun anlık istatistikleri`)
-    .addFields(
-      { name: '👥 Aktif Oyuncu', value: `\`${activity.playing.toLocaleString('tr-TR')}\``, inline: true },
-      { name: '📊 Maksimum Oyuncu', value: `\`${activity.maxPlayers.toLocaleString('tr-TR')}\``, inline: true },
-      { name: '👁️ Toplam Ziyaret', value: `\`${activity.visits.toLocaleString('tr-TR')}\``, inline: true }
-    )
-    .setColor(0x57F287)
-    .setTimestamp()
-    .setFooter({ text: 'Aktiflik Sorgu Sistemi' });
-  
-  await interaction.editReply({ embeds: [embed] });
+  await interaction.editReply(`> Oyunun mevcut aktifliği: ${activity.playing}`);
 }
 
 async function handleGroupList(interaction) {

@@ -373,6 +373,11 @@ const commands = [
       option.setName('rütbe')
         .setDescription('Verilecek rütbe adı')
         .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('sebep')
+        .setDescription('Rütbe değişikliği sebebi')
+        .setRequired(true)
     ),
   
   new SlashCommandBuilder()
@@ -382,6 +387,11 @@ const commands = [
       option.setName('kişi')
         .setDescription('Terfi edilecek kişinin Roblox kullanıcı adı')
         .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('sebep')
+        .setDescription('Terfi sebebi')
+        .setRequired(true)
     ),
   
   new SlashCommandBuilder()
@@ -390,6 +400,11 @@ const commands = [
     .addStringOption(option =>
       option.setName('kişi')
         .setDescription('Tenzil edilecek kişinin Roblox kullanıcı adı')
+        .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('sebep')
+        .setDescription('Tenzil sebebi')
         .setRequired(true)
     ),
   
@@ -770,6 +785,7 @@ async function handleRankChange(interaction) {
   
   const robloxNick = interaction.options.getString('kişi');
   const targetRankName = interaction.options.getString('rütbe');
+  const reason = interaction.options.getString('sebep');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
@@ -807,7 +823,7 @@ async function handleRankChange(interaction) {
     });
     
     const oldRankText = currentRank ? currentRank.name : 'Bilinmiyor';
-    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${oldRankText} rütbesinden ${targetRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: Anayin ammına goytum terfi hakettin`;
+    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${oldRankText} rütbesinden ${targetRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: ${reason}`;
     
     await interaction.editReply(message);
   } else {
@@ -819,6 +835,7 @@ async function handleRankPromotion(interaction) {
   await interaction.deferReply();
   
   const robloxNick = interaction.options.getString('kişi');
+  const reason = interaction.options.getString('sebep');
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
@@ -861,7 +878,7 @@ async function handleRankPromotion(interaction) {
       newRank: `${nextRole.name} (${nextRole.rank})`
     });
     
-    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${nextRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: Anayin ammına goytum terfi hakettin`;
+    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${nextRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: ${reason}`;
     
     await interaction.editReply(message);
   } else {
@@ -873,6 +890,7 @@ async function handleRankDemotion(interaction) {
   await interaction.deferReply();
   
   const robloxNick = interaction.options.getString('kişi');
+  const reason = interaction.options.getString('sebep');
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
@@ -915,7 +933,7 @@ async function handleRankDemotion(interaction) {
       newRank: `${prevRole.name} (${prevRole.rank})`
     });
     
-    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${prevRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: Anayin ammına goytum terfi hakettin`;
+    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${prevRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: ${reason}`;
     
     await interaction.editReply(message);
   } else {
@@ -1029,7 +1047,7 @@ async function handleActivityQuery(interaction) {
     return interaction.editReply('HATA: Oyun bilgisi alınamadı!');
   }
   
-  await interaction.editReply(`Oyunun mevcut aktifliği: ${activity.playing}`);
+  await interaction.editReply(`${activity.name} oyununun mevcut aktifliği: ${activity.playing}`);
 }
 
 async function handleGroupList(interaction) {

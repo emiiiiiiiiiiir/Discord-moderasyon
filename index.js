@@ -1158,17 +1158,8 @@ async function handleBranchRankChange(interaction) {
     });
     
     const embed = new EmbedBuilder()
-      .setTitle('Branş Rütbe Değiştirildi')
-      .setDescription(`**${robloxNick}** kullanıcısının **${branch}** branşındaki rütbesi değiştirildi`)
-      .addFields(
-        { name: 'İlgili Kişi', value: `${managerUsername} (${managerRank.name})`, inline: true },
-        { name: 'Branş', value: branch, inline: true },
-        { name: 'Eski Rütbe', value: currentRank.name, inline: true },
-        { name: 'Yeni Rütbe', value: targetRole.name, inline: true },
-        { name: 'Sebep', value: reason, inline: false }
-      )
-      .setColor(0x5865F2)
-      .setTimestamp();
+      .setDescription(`İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, **${branch}** branşında ${currentRank.name} rütbesinden ${targetRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**\n${reason}`)
+      .setColor(0x57F287);
     
     await interaction.editReply({ embeds: [embed] });
   } else {
@@ -1231,17 +1222,10 @@ async function handleBranchRequest(interaction) {
       reason: reason
     });
     
+    const statusText = decision === 'kabul' ? 'kabul edildi' : 'reddedildi';
     const embed = new EmbedBuilder()
-      .setTitle(decision === 'kabul' ? 'İstek Kabul Edildi' : 'İstek Reddedildi')
-      .setDescription(`**${robloxNick}** kullanıcısının **${branch}** branşı isteği ${decision === 'kabul' ? 'kabul edildi' : 'reddedildi'}`)
-      .addFields(
-        { name: 'İlgili Kişi', value: `${managerUsername} (${managerRank.name})`, inline: true },
-        { name: 'Branş', value: branch, inline: true },
-        { name: 'Karar', value: decision === 'kabul' ? 'Kabul' : 'Red', inline: true },
-        { name: 'Sebep', value: reason, inline: false }
-      )
-      .setColor(decision === 'kabul' ? 0x57F287 : 0xED4245)
-      .setTimestamp();
+      .setDescription(`İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisinin **${branch}** branşı isteği ${statusText}.\n\n**Sebep**\n${reason}`)
+      .setColor(decision === 'kabul' ? 0x57F287 : 0xED4245);
     
     await interaction.editReply({ embeds: [embed] });
   } else {

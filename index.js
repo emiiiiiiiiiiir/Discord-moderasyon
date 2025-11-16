@@ -950,7 +950,8 @@ async function handleBan(interaction) {
       }
     }
     
-    let message = `İşlem başarıyla tamamlandı\n\n@${user.username} Kişi başarıyla tüm ATEF sunucularından yasaklandı.\n\n**Sebep**\n${reason}\n\n`;
+    const guildName = interaction.guild.name;
+    let message = `İşlem başarıyla tamamlandı\n\n@${user.username} Kişi başarıyla tüm ${guildName} sunucularından yasaklandı.\n\n**Sebep**\n${reason}\n\n`;
     
     if (successGuilds.length > 0) {
       message += `**Yasaklanan Sunucular**\n${successGuilds.map(name => `• | ${name}`).join('\n')}\n\n`;

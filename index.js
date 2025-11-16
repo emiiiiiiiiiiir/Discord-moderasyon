@@ -823,9 +823,11 @@ async function handleRankChange(interaction) {
     });
     
     const oldRankText = currentRank ? currentRank.name : 'Bilinmiyor';
-    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${oldRankText} rütbesinden ${targetRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: ${reason}`;
+    const embed = new EmbedBuilder()
+      .setDescription(`İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${oldRankText} rütbesinden ${targetRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**\n${reason}`)
+      .setColor(0x57F287);
     
-    await interaction.editReply(message);
+    await interaction.editReply({ embeds: [embed] });
   } else {
     await interaction.editReply('HATA: Rütbe değiştirilemedi! Cookie kontrolü yapın.');
   }
@@ -878,9 +880,11 @@ async function handleRankPromotion(interaction) {
       newRank: `${nextRole.name} (${nextRole.rank})`
     });
     
-    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${nextRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: ${reason}`;
+    const embed = new EmbedBuilder()
+      .setDescription(`İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${nextRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**\n${reason}`)
+      .setColor(0x57F287);
     
-    await interaction.editReply(message);
+    await interaction.editReply({ embeds: [embed] });
   } else {
     await interaction.editReply('HATA: Terfi işlemi başarısız!');
   }
@@ -933,9 +937,11 @@ async function handleRankDemotion(interaction) {
       newRank: `${prevRole.name} (${prevRole.rank})`
     });
     
-    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${prevRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**: ${reason}`;
+    const embed = new EmbedBuilder()
+      .setDescription(`İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${prevRole.name} rütbesine başarıyla değiştirdin.\n\n**Sebep**\n${reason}`)
+      .setColor(0x57F287);
     
-    await interaction.editReply(message);
+    await interaction.editReply({ embeds: [embed] });
   } else {
     await interaction.editReply('HATA: Tenzil işlemi başarısız!');
   }
@@ -970,19 +976,23 @@ async function handleBan(interaction) {
     
     const guildName = interaction.guild.name;
     const bannedUserTag = user.tag;
-    let message = `İşlem başarıyla tamamlandı\n\n${bannedUserTag} Kişi başarıyla tüm ${guildName} sunucularından yasaklandı.\n\n**Sebep**\n${reason}\n\n`;
+    let description = `İşlem başarıyla tamamlandı\n\n${bannedUserTag} Kişi başarıyla tüm ${guildName} sunucularından yasaklandı.\n\n**Sebep**\n${reason}\n\n`;
     
     if (successGuilds.length > 0) {
-      message += `**Yasaklanan Sunucular**\n${successGuilds.map(name => `• | ${name}`).join('\n')}\n\n`;
+      description += `**Yasaklanan Sunucular**\n${successGuilds.map(name => `• | ${name}`).join('\n')}\n\n`;
     }
     
     if (failedGuilds.length > 0) {
-      message += `**Yasaklanamayan Sunucular**\n${failedGuilds.map(name => `• | ${name}`).join('\n')}`;
+      description += `**Yasaklanamayan Sunucular**\n${failedGuilds.map(name => `• | ${name}`).join('\n')}`;
     } else {
-      message += `**Yasaklanamayan Sunucular**\nTüm sunucularda yasaklama başarılı.`;
+      description += `**Yasaklanamayan Sunucular**\nTüm sunucularda yasaklama başarılı.`;
     }
     
-    await interaction.editReply(message);
+    const embed = new EmbedBuilder()
+      .setDescription(description)
+      .setColor(0x57F287);
+    
+    await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Yasaklama hatası:', error);
     await interaction.editReply('HATA: Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin.');

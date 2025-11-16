@@ -356,7 +356,7 @@ const commands = [
     .setName('rütbe-sorgu')
     .setDescription('Kullanıcının Roblox grubundaki rütbesini sorgular')
     .addStringOption(option =>
-      option.setName('roblox_nick')
+      option.setName('kişi')
         .setDescription('Roblox kullanıcı adı')
         .setRequired(true)
     ),
@@ -365,7 +365,7 @@ const commands = [
     .setName('rütbe-değiştir')
     .setDescription('Belirtilen rütbeyi kullanıcıya verir')
     .addStringOption(option =>
-      option.setName('roblox_nick')
+      option.setName('kişi')
         .setDescription('Rütbe verilecek kişinin Roblox kullanıcı adı')
         .setRequired(true)
     )
@@ -379,7 +379,7 @@ const commands = [
     .setName('rütbe-terfi')
     .setDescription('Kullanıcıya 1x terfi verir')
     .addStringOption(option =>
-      option.setName('roblox_nick')
+      option.setName('kişi')
         .setDescription('Terfi edilecek kişinin Roblox kullanıcı adı')
         .setRequired(true)
     ),
@@ -388,7 +388,7 @@ const commands = [
     .setName('rütbe-tenzil')
     .setDescription('Kullanıcıya 1x tenzil verir')
     .addStringOption(option =>
-      option.setName('roblox_nick')
+      option.setName('kişi')
         .setDescription('Tenzil edilecek kişinin Roblox kullanıcı adı')
         .setRequired(true)
     ),
@@ -397,7 +397,7 @@ const commands = [
     .setName('tamyasak')
     .setDescription('Kullanıcıyı botun bulunduğu tüm sunuculardan yasaklar')
     .addStringOption(option =>
-      option.setName('kullanici_id')
+      option.setName('kişi')
         .setDescription('Discord kullanıcı ID\'si')
         .setRequired(true)
     ),
@@ -406,7 +406,7 @@ const commands = [
     .setName('tamyasak-kaldır')
     .setDescription('Kullanıcının botun bulunduğu tüm sunuculardan yasağını kaldırır')
     .addStringOption(option =>
-      option.setName('kullanici_id')
+      option.setName('kişi')
         .setDescription('Discord kullanıcı ID\'si')
         .setRequired(true)
     ),
@@ -419,7 +419,7 @@ const commands = [
     .setName('roblox-bağla')
     .setDescription('Discord hesabınızı Roblox hesabınıza bağlar')
     .addStringOption(option =>
-      option.setName('roblox_nick')
+      option.setName('kişi')
         .setDescription('Roblox kullanıcı adınız')
         .setRequired(true)
     ),
@@ -428,7 +428,7 @@ const commands = [
     .setName('roblox-değiştir')
     .setDescription('Bağlı Roblox hesabınızı değiştirir')
     .addStringOption(option =>
-      option.setName('roblox_nick')
+      option.setName('kişi')
         .setDescription('Yeni Roblox kullanıcı adınız')
         .setRequired(true)
     ),
@@ -437,7 +437,7 @@ const commands = [
     .setName('grup-listele')
     .setDescription('Kullanıcının bulunduğu tüm grupları ve rütbelerini listeler')
     .addStringOption(option =>
-      option.setName('roblox_nick')
+      option.setName('kişi')
         .setDescription('Roblox kullanıcı adı')
         .setRequired(true)
     ),
@@ -446,7 +446,7 @@ const commands = [
     .setName('branş-istek')
     .setDescription('Branş grup isteğini kabul veya reddeder')
     .addStringOption(option =>
-      option.setName('roblox_nick')
+      option.setName('kişi')
         .setDescription('Roblox kullanıcı adı')
         .setRequired(true)
     )
@@ -482,7 +482,7 @@ const commands = [
     .setName('branş-rütbe-değiştir')
     .setDescription('Branş grubunda kullanıcının rütbesini değiştirir')
     .addStringOption(option =>
-      option.setName('roblox_nick')
+      option.setName('kişi')
         .setDescription('Rütbe verilecek kişinin Roblox kullanıcı adı')
         .setRequired(true)
     )
@@ -731,7 +731,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
 async function handleRankQuery(interaction) {
   await interaction.deferReply();
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const robloxNick = interaction.options.getString('kişi');
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
@@ -763,7 +763,7 @@ async function handleRankQuery(interaction) {
 async function handleRankChange(interaction) {
   await interaction.deferReply();
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const robloxNick = interaction.options.getString('kişi');
   const targetRankName = interaction.options.getString('rütbe');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
@@ -821,7 +821,7 @@ async function handleRankChange(interaction) {
 async function handleRankPromotion(interaction) {
   await interaction.deferReply();
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const robloxNick = interaction.options.getString('kişi');
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
@@ -884,7 +884,7 @@ async function handleRankPromotion(interaction) {
 async function handleRankDemotion(interaction) {
   await interaction.deferReply();
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const robloxNick = interaction.options.getString('kişi');
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
@@ -951,7 +951,7 @@ async function handleBan(interaction) {
   
   await interaction.deferReply();
   
-  const discordUserId = interaction.options.getString('kullanici_id');
+  const discordUserId = interaction.options.getString('kişi');
   
   try {
     const user = await client.users.fetch(discordUserId);
@@ -1002,7 +1002,7 @@ async function handleUnban(interaction) {
   
   await interaction.deferReply();
   
-  const discordUserId = interaction.options.getString('kullanici_id');
+  const discordUserId = interaction.options.getString('kişi');
   
   try {
     const guilds = client.guilds.cache;
@@ -1070,7 +1070,7 @@ async function handleActivityQuery(interaction) {
 async function handleGroupList(interaction) {
   await interaction.deferReply();
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const robloxNick = interaction.options.getString('kişi');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
@@ -1110,7 +1110,7 @@ async function handleBranchRankChange(interaction) {
     return interaction.editReply('HATA: Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.');
   }
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const robloxNick = interaction.options.getString('kişi');
   const branch = interaction.options.getString('branş');
   const targetRankName = interaction.options.getString('rütbe');
   const reason = interaction.options.getString('sebep');
@@ -1196,7 +1196,7 @@ async function handleBranchRequest(interaction) {
     return interaction.editReply('HATA: Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.');
   }
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const robloxNick = interaction.options.getString('kişi');
   const branch = interaction.options.getString('branş');
   const decision = interaction.options.getString('karar');
   const reason = interaction.options.getString('sebep');
@@ -1269,7 +1269,7 @@ async function handleRobloxLink(interaction) {
     return interaction.editReply(`HATA: Discord hesabınız zaten **${existingLink}** kullanıcısına bağlı! Hesabınızı değiştirmek için \`/roblox-değiştir\` komutunu kullanın.`);
   }
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const robloxNick = interaction.options.getString('kişi');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
@@ -1354,7 +1354,7 @@ async function handleRobloxChange(interaction) {
     return interaction.editReply('HATA: Discord hesabınız henüz bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanın.');
   }
   
-  const robloxNick = interaction.options.getString('roblox_nick');
+  const robloxNick = interaction.options.getString('kişi');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {

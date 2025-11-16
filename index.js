@@ -400,6 +400,11 @@ const commands = [
       option.setName('kişi')
         .setDescription('Discord kullanıcı ID\'si')
         .setRequired(true)
+    )
+    .addStringOption(option =>
+      option.setName('sebep')
+        .setDescription('Yasaklama sebebi')
+        .setRequired(true)
     ),
   
   new SlashCommandBuilder()
@@ -801,18 +806,10 @@ async function handleRankChange(interaction) {
       newRank: `${targetRole.name} (${targetRole.rank})`
     });
     
-    const embed = new EmbedBuilder()
-      .setTitle('Rütbe Değiştirildi')
-      .setDescription(`**${robloxNick}** kullanıcısının rütbesi başarıyla değiştirildi`)
-      .addFields(
-        { name: 'İlgili Kişi', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.name})`, inline: false },
-        { name: 'Yeni Rütbe', value: targetRole.name, inline: true },
-        { name: 'Rütbe', value: targetRole.rank.toString(), inline: true }
-      )
-      .setColor(0x57F287)
-      .setTimestamp();
+    const oldRankText = currentRank ? currentRank.name : 'Bilinmiyor';
+    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${oldRankText} rütbesinden ${targetRole.name} rütbesine başarıyla değiştirdin.`;
     
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply(message);
   } else {
     await interaction.editReply('HATA: Rütbe değiştirilemedi! Cookie kontrolü yapın.');
   }
@@ -864,18 +861,9 @@ async function handleRankPromotion(interaction) {
       newRank: `${nextRole.name} (${nextRole.rank})`
     });
     
-    const embed = new EmbedBuilder()
-      .setTitle('Terfi İşlemi')
-      .setDescription(`**${robloxNick}** kullanıcısı 1x terfi edildi`)
-      .addFields(
-        { name: 'İlgili Kişi', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.name})`, inline: false },
-        { name: 'Eski Rütbe', value: currentRank.name, inline: true },
-        { name: 'Yeni Rütbe', value: nextRole.name, inline: true }
-      )
-      .setColor(0x57F287)
-      .setTimestamp();
+    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${nextRole.name} rütbesine başarıyla değiştirdin.`;
     
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply(message);
   } else {
     await interaction.editReply('HATA: Terfi işlemi başarısız!');
   }
@@ -927,18 +915,9 @@ async function handleRankDemotion(interaction) {
       newRank: `${prevRole.name} (${prevRole.rank})`
     });
     
-    const embed = new EmbedBuilder()
-      .setTitle('Tenzil İşlemi')
-      .setDescription(`**${robloxNick}** kullanıcısı 1x tenzil edildi`)
-      .addFields(
-        { name: 'İlgili Kişi', value: `${permissionCheck.managerUsername} (${permissionCheck.managerRank.name})`, inline: false },
-        { name: 'Eski Rütbe', value: currentRank.name, inline: true },
-        { name: 'Yeni Rütbe', value: prevRole.name, inline: true }
-      )
-      .setColor(0xED4245)
-      .setTimestamp();
+    const message = `İşlem başarıyla tamamlandı\n\n${robloxNick} (${userId}) kişisini, ${currentRank.name} rütbesinden ${prevRole.name} rütbesine başarıyla değiştirdin.`;
     
-    await interaction.editReply({ embeds: [embed] });
+    await interaction.editReply(message);
   } else {
     await interaction.editReply('HATA: Tenzil işlemi başarısız!');
   }
@@ -952,43 +931,38 @@ async function handleBan(interaction) {
   await interaction.deferReply();
   
   const discordUserId = interaction.options.getString('kişi');
+  const reason = interaction.options.getString('sebep');
   
   try {
     const user = await client.users.fetch(discordUserId);
     const guilds = client.guilds.cache;
     
-    let successCount = 0;
-    let failCount = 0;
+    const successGuilds = [];
     const failedGuilds = [];
     
     for (const [guildId, guild] of guilds) {
       try {
-        await guild.members.ban(discordUserId, { reason: 'Tam yasak komutu ile yasaklandı' });
-        successCount++;
+        await guild.members.ban(discordUserId, { reason: reason });
+        successGuilds.push(guild.name);
       } catch (error) {
-        failCount++;
         failedGuilds.push(guild.name);
         console.error(`${guild.name} sunucusunda yasaklama hatası:`, error.message);
       }
     }
     
-    const embed = new EmbedBuilder()
-      .setTitle('Tam Yasak Uygulandı')
-      .setDescription(`**${user.tag}** botun bulunduğu sunuculardan yasaklandı`)
-      .addFields(
-        { name: 'Yasaklanan Kullanıcı', value: user.tag, inline: true },
-        { name: 'Discord ID', value: discordUserId, inline: true },
-        { name: 'Başarılı', value: `${successCount} sunucu`, inline: true },
-        { name: 'Başarısız', value: `${failCount} sunucu`, inline: true }
-      )
-      .setColor(successCount > 0 ? 0xED4245 : 0xFEE75C)
-      .setTimestamp();
+    let message = `İşlem başarıyla tamamlandı\n\n@${user.username} Kişi başarıyla tüm ATEF sunucularından yasaklandı.\n\n**Sebep**\n${reason}\n\n`;
     
-    if (failedGuilds.length > 0 && failedGuilds.length <= 5) {
-      embed.addFields({ name: 'Başarısız Sunucular', value: failedGuilds.join(', '), inline: false });
+    if (successGuilds.length > 0) {
+      message += `**Yasaklanan Sunucular**\n${successGuilds.map(name => `• | ${name}`).join('\n')}\n\n`;
     }
     
-    await interaction.editReply({ embeds: [embed] });
+    if (failedGuilds.length > 0) {
+      message += `**Yasaklanamayan Sunucular**\n${failedGuilds.map(name => `• | ${name}`).join('\n')}`;
+    } else {
+      message += `**Yasaklanamayan Sunucular**\nTüm sunucularda yasaklama başarılı.`;
+    }
+    
+    await interaction.editReply(message);
   } catch (error) {
     console.error('Yasaklama hatası:', error);
     await interaction.editReply('HATA: Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin.');
@@ -1053,18 +1027,7 @@ async function handleActivityQuery(interaction) {
     return interaction.editReply('HATA: Oyun bilgisi alınamadı!');
   }
   
-  const embed = new EmbedBuilder()
-    .setTitle('Oyun Aktifliği')
-    .setDescription(`**${activity.name}** istatistikleri`)
-    .addFields(
-      { name: 'Şu An Oynayan', value: activity.playing.toString(), inline: true },
-      { name: 'Maksimum Oyuncu', value: activity.maxPlayers.toString(), inline: true },
-      { name: 'Toplam Ziyaret', value: activity.visits.toLocaleString(), inline: true }
-    )
-    .setColor(0x5865F2)
-    .setTimestamp();
-  
-  await interaction.editReply({ embeds: [embed] });
+  await interaction.editReply(`Oyunun mevcut aktifliği: ${activity.playing}`);
 }
 
 async function handleGroupList(interaction) {

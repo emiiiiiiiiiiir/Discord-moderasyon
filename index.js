@@ -660,10 +660,10 @@ client.on('interactionCreate', async (interaction) => {
       
       try {
         if (interaction.deferred || interaction.replied) {
-          await interaction.editReply('> Bir hata oluştu!');
+          await interaction.editReply('```diff\n+ Bir hata oluştu!\n```');
         } else {
           await interaction.reply({ 
-            content: '> Bir hata oluştu!', 
+            content: '```diff\n- Bir hata oluştu!\n```', 
             flags: 64
           });
         }
@@ -688,7 +688,7 @@ client.on('interactionCreate', async (interaction) => {
       }
     } catch (error) {
       console.error('Buton hatası:', error);
-      await interaction.reply({ content: '> Bir hata oluştu!', flags: 64 }).catch(() => {});
+      await interaction.reply({ content: '```diff\n- Bir hata oluştu!\n```', flags: 64 }).catch(() => {});
     }
   }
   else if (interaction.isStringSelectMenu()) {
@@ -698,7 +698,7 @@ client.on('interactionCreate', async (interaction) => {
       }
     } catch (error) {
       console.error('Select menu hatası:', error);
-      await interaction.reply({ content: '> Bir hata oluştu!', flags: 64 }).catch(() => {});
+      await interaction.reply({ content: '```diff\n- Bir hata oluştu!\n```', flags: 64 }).catch(() => {});
     }
   }
 });
@@ -708,7 +708,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (!managerUsername) {
     return { 
       allowed: false, 
-      message: '> Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.' 
+      message: '```diff\n- Discord hesabınız bir Roblox hesabına bağlı değil! Önce /roblox-bağla komutunu kullanarak hesabınızı bağlayın.\n```' 
     };
   }
 
@@ -716,7 +716,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (!managerId) {
     return { 
       allowed: false, 
-      message: '> Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.' 
+      message: '```diff\n- Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.\n```' 
     };
   }
 
@@ -724,7 +724,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (!managerRank) {
     return { 
       allowed: false, 
-      message: '> Grupta olmayan kişiler rütbe veremez!' 
+      message: '```diff\n- Grupta olmayan kişiler rütbe veremez!\n```' 
     };
   }
 
@@ -761,14 +761,14 @@ async function handleRankQuery(interaction) {
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('> Kullanıcı bulunamadı!');
+    return interaction.editReply('```diff\n- Kullanıcı bulunamadı!\n```');
   }
   
   const userInfo = await robloxAPI.getUserInfo(userId);
   const rankInfo = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   
   if (!rankInfo) {
-    return interaction.editReply('> Kullanıcı grupta değil!');
+    return interaction.editReply('```diff\n- Kullanıcı grupta değil!\n```');
   }
   
   const embed = new EmbedBuilder()
@@ -795,7 +795,7 @@ async function handleRankChange(interaction) {
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('> Hedef kullanıcı bulunamadı!');
+    return interaction.editReply('```diff\n- Hedef kullanıcı bulunamadı!\n```');
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
@@ -808,7 +808,7 @@ async function handleRankChange(interaction) {
   const targetRole = roles.find(r => r.name.toLowerCase() === targetRankName.toLowerCase());
   
   if (!targetRole) {
-    return interaction.editReply('> Belirtilen rütbe bulunamadı!');
+    return interaction.editReply('```diff\n- Belirtilen rütbe bulunamadı!\n```');
   }
   
   const permissionCheck = await checkRankPermissions(interaction.user.id, targetRole.rank);
@@ -817,7 +817,7 @@ async function handleRankChange(interaction) {
   }
   
   if (userId === permissionCheck.managerId) {
-    return interaction.editReply('> Kendi rütbeni değiştiremezsin!');
+    return interaction.editReply('```diff\n- Kendi rütbeni değiştiremezsin!\n```');
   }
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, targetRole.id, ROBLOX_COOKIE);
@@ -839,7 +839,7 @@ async function handleRankChange(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('> Rütbe değiştirilemedi! Cookie kontrolü yapın.');
+    await interaction.editReply('```diff\n+ Rütbe değiştirilemedi! Cookie kontrolü yapın.\n```');
   }
 }
 
@@ -851,12 +851,12 @@ async function handleRankPromotion(interaction) {
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('> Hedef kullanıcı bulunamadı!');
+    return interaction.editReply('```diff\n- Hedef kullanıcı bulunamadı!\n```');
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!currentRank) {
-    return interaction.editReply('> Kullanıcı grupta değil!');
+    return interaction.editReply('```diff\n- Kullanıcı grupta değil!\n```');
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
@@ -868,7 +868,7 @@ async function handleRankPromotion(interaction) {
   const currentIndex = sortedRoles.findIndex(r => r.rank === currentRank.rank);
   
   if (currentIndex === sortedRoles.length - 1) {
-    return interaction.editReply('> Kullanıcı zaten en üst rütbede!');
+    return interaction.editReply('```diff\n+ Kullanıcı zaten en üst rütbede!\n```');
   }
   
   const nextRole = sortedRoles[currentIndex + 1];
@@ -879,7 +879,7 @@ async function handleRankPromotion(interaction) {
   }
   
   if (userId === permissionCheck.managerId) {
-    return interaction.editReply('> Kendi rütbeni değiştiremezsin!');
+    return interaction.editReply('```diff\n- Kendi rütbeni değiştiremezsin!\n```');
   }
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, nextRole.id, ROBLOX_COOKIE);
@@ -900,7 +900,7 @@ async function handleRankPromotion(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('> Terfi işlemi başarısız!');
+    await interaction.editReply('```diff\n+ Terfi işlemi başarısız!\n```');
   }
 }
 
@@ -912,12 +912,12 @@ async function handleRankDemotion(interaction) {
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('> Hedef kullanıcı bulunamadı!');
+    return interaction.editReply('```diff\n- Hedef kullanıcı bulunamadı!\n```');
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!currentRank) {
-    return interaction.editReply('> Kullanıcı grupta değil!');
+    return interaction.editReply('```diff\n- Kullanıcı grupta değil!\n```');
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
@@ -929,7 +929,7 @@ async function handleRankDemotion(interaction) {
   const currentIndex = sortedRoles.findIndex(r => r.rank === currentRank.rank);
   
   if (currentIndex === 0) {
-    return interaction.editReply('> Kullanıcı zaten en alt rütbede!');
+    return interaction.editReply('```diff\n+ Kullanıcı zaten en alt rütbede!\n```');
   }
   
   const prevRole = sortedRoles[currentIndex - 1];
@@ -940,7 +940,7 @@ async function handleRankDemotion(interaction) {
   }
   
   if (userId === permissionCheck.managerId) {
-    return interaction.editReply('> Kendi rütbeni değiştiremezsin!');
+    return interaction.editReply('```diff\n- Kendi rütbeni değiştiremezsin!\n```');
   }
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, prevRole.id, ROBLOX_COOKIE);
@@ -961,13 +961,13 @@ async function handleRankDemotion(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('> Tenzil işlemi başarısız!');
+    await interaction.editReply('```diff\n+ Tenzil işlemi başarısız!\n```');
   }
 }
 
 async function handleBan(interaction) {
   if (!interaction.member.roles.cache.some(role => config.adminRoleIds.includes(role.id))) {
-    return interaction.reply({ content: '> Bu komutu kullanma yetkiniz yok!', ephemeral: true });
+    return interaction.reply({ content: '```diff\n+ Bu komutu kullanma yetkiniz yok!\n```', ephemeral: true });
   }
   
   await interaction.deferReply();
@@ -1019,7 +1019,7 @@ async function handleBan(interaction) {
 
 async function handleUnban(interaction) {
   if (!interaction.member.roles.cache.some(role => config.adminRoleIds.includes(role.id))) {
-    return interaction.reply({ content: '> Bu komutu kullanma yetkiniz yok!', ephemeral: true });
+    return interaction.reply({ content: '```diff\n+ Bu komutu kullanma yetkiniz yok!\n```', ephemeral: true });
   }
   
   await interaction.deferReply();
@@ -1072,10 +1072,10 @@ async function handleActivityQuery(interaction) {
   const activity = await robloxAPI.getGameActivity(config.gameId);
   
   if (!activity) {
-    return interaction.editReply('> Oyun bilgisi alınamadı!');
+    return interaction.editReply('```diff\n- Oyun bilgisi alınamadı!\n```');
   }
   
-  await interaction.editReply(`> Oyunun mevcut aktifliği: ${activity.playing}`);
+  await interaction.editReply(`\`\`\`diff\n+ Oyunun mevcut aktifliği: ${activity.playing}\n\`\`\``);
 }
 
 async function handleGroupList(interaction) {
@@ -1085,7 +1085,7 @@ async function handleGroupList(interaction) {
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('> Roblox kullanıcısı bulunamadı!');
+    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı!\n```');
   }
   
   const groups = await robloxAPI.getUserGroups(userId);
@@ -1113,12 +1113,12 @@ async function handleBranchRankChange(interaction) {
   
   const managerUsername = getLinkedRobloxUsername(interaction.user.id);
   if (!managerUsername) {
-    return interaction.editReply('> Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.');
+    return interaction.editReply('```diff\n- Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.\n```');
   }
 
   const managerId = await robloxAPI.getUserIdByUsername(managerUsername);
   if (!managerId) {
-    return interaction.editReply('> Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.');
+    return interaction.editReply('```diff\n- Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.\n```');
   }
   
   const robloxNick = interaction.options.getString('kişi');
@@ -1129,40 +1129,40 @@ async function handleBranchRankChange(interaction) {
   const branchGroupId = config.branchGroups[branch];
   
   if (!branchGroupId || branchGroupId === 'GRUP_ID_BURAYA') {
-    return interaction.editReply(`> ${branch} branşı için grup ID tanımlanmamış! Config dosyasını kontrol edin.`);
+    return interaction.editReply(`\`\`\`diff\n- ${branch} branşı için grup ID tanımlanmamış! Config dosyasını kontrol edin.\n\`\`\``);
   }
 
   const managerRank = await robloxAPI.getUserRankInGroup(managerId, branchGroupId);
   if (!managerRank) {
-    return interaction.editReply(`> **${branch}** branş grubunda olmayan kişiler bu branşta rütbe işlemi yapamaz!`);
+    return interaction.editReply(`\`\`\`diff\n- **${branch}** branş grubunda olmayan kişiler bu branşta rütbe işlemi yapamaz!\n\`\`\``);
   }
 
   if (config.branchManagerRanks && !config.branchManagerRanks.includes(managerRank.rank)) {
-    return interaction.editReply(`> Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş rütbe işlemi yapabilir! (Sizin **${branch}** branşındaki rütbeniz: ${managerRank.rank})`);
+    return interaction.editReply(`\`\`\`diff\n+ Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş rütbe işlemi yapabilir! (Sizin **${branch}** branşındaki rütbeniz: ${managerRank.rank})\n\`\`\``);
   }
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('> Roblox kullanıcısı bulunamadı!');
+    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı!\n```');
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, branchGroupId);
   if (!currentRank) {
-    return interaction.editReply(`> Kullanıcı **${branch}** branş grubunda değil!`);
+    return interaction.editReply(`\`\`\`diff\n- Kullanıcı **${branch}** branş grubunda değil!\n\`\`\``);
   }
   
   const branchRoles = await robloxAPI.getGroupRoles(branchGroupId);
   if (!branchRoles) {
-    return interaction.editReply('> Branş grup rütbeleri alınamadı!');
+    return interaction.editReply('```diff\n- Branş grup rütbeleri alınamadı!\n```');
   }
   
   const targetRole = branchRoles.find(r => r.name.toLowerCase() === targetRankName.toLowerCase());
   if (!targetRole) {
-    return interaction.editReply(`> **${targetRankName}** rütbesi **${branch}** branşında bulunamadı!`);
+    return interaction.editReply(`\`\`\`diff\n- **${targetRankName}** rütbesi **${branch}** branşında bulunamadı!\n\`\`\``);
   }
   
   if (userId === managerId) {
-    return interaction.editReply('> Kendi rütbeni değiştiremezsin!');
+    return interaction.editReply('```diff\n- Kendi rütbeni değiştiremezsin!\n```');
   }
   
   const result = await robloxAPI.setUserRole(userId, branchGroupId, targetRole.id, ROBLOX_COOKIE);
@@ -1185,7 +1185,7 @@ async function handleBranchRankChange(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('> Rütbe değiştirilemedi! Cookie kontrolü yapın veya bot yetkilerini kontrol edin.');
+    await interaction.editReply('```diff\n+ Rütbe değiştirilemedi! Cookie kontrolü yapın veya bot yetkilerini kontrol edin.\n```');
   }
 }
 
@@ -1194,12 +1194,12 @@ async function handleBranchRequest(interaction) {
   
   const managerUsername = getLinkedRobloxUsername(interaction.user.id);
   if (!managerUsername) {
-    return interaction.editReply('> Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.');
+    return interaction.editReply('```diff\n- Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.\n```');
   }
 
   const managerId = await robloxAPI.getUserIdByUsername(managerUsername);
   if (!managerId) {
-    return interaction.editReply('> Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.');
+    return interaction.editReply('```diff\n- Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.\n```');
   }
   
   const robloxNick = interaction.options.getString('kişi');
@@ -1210,21 +1210,21 @@ async function handleBranchRequest(interaction) {
   const branchGroupId = config.branchGroups[branch];
   
   if (!branchGroupId || branchGroupId === 'GRUP_ID_BURAYA') {
-    return interaction.editReply(`> ${branch} branşı için grup ID tanımlanmamış! Config dosyasını kontrol edin.`);
+    return interaction.editReply(`\`\`\`diff\n- ${branch} branşı için grup ID tanımlanmamış! Config dosyasını kontrol edin.\n\`\`\``);
   }
 
   const managerRank = await robloxAPI.getUserRankInGroup(managerId, branchGroupId);
   if (!managerRank) {
-    return interaction.editReply(`> **${branch}** branş grubunda olmayan kişiler bu branşta işlem yapamaz!`);
+    return interaction.editReply(`\`\`\`diff\n- **${branch}** branş grubunda olmayan kişiler bu branşta işlem yapamaz!\n\`\`\``);
   }
 
   if (config.branchManagerRanks && !config.branchManagerRanks.includes(managerRank.rank)) {
-    return interaction.editReply(`> Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş işlemi yapabilir! (Sizin **${branch}** branşındaki rütbeniz: ${managerRank.rank})`);
+    return interaction.editReply(`\`\`\`diff\n+ Sadece ${config.branchManagerRanks.join(', ')} rütbeli kişiler branş işlemi yapabilir! (Sizin **${branch}** branşındaki rütbeniz: ${managerRank.rank})\n\`\`\``);
   }
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('> Roblox kullanıcısı bulunamadı!');
+    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı!\n```');
   }
   
   let result;
@@ -1251,7 +1251,7 @@ async function handleBranchRequest(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply(`> İstek ${decision === 'kabul' ? 'kabul' : 'red'} edilemedi! Kullanıcının gruba istek göndermediğinden emin olun.`);
+    await interaction.editReply(`\`\`\`diff\n+ İstek ${decision === 'kabul' ? 'kabul' : 'red'} edilemedi! Kullanıcının gruba istek göndermediğinden emin olun.\n\`\`\``);
   }
 }
 
@@ -1272,12 +1272,12 @@ async function handleRobloxLink(interaction) {
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('> Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.');
+    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.\n```');
   }
   
   const rankInfo = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!rankInfo) {
-    return interaction.editReply('> Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.');
+    return interaction.editReply('```diff\n- Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.\n```');
   }
   
   // Bekleyen doğrulama var mı kontrol et
@@ -1311,7 +1311,7 @@ async function handleRobloxLink(interaction) {
         
         return interaction.editReply({ embeds: [embed] });
       } else {
-        return interaction.editReply('> Hesap bağlantısı kaydedilemedi! Lütfen tekrar deneyin.');
+        return interaction.editReply('```diff\n+ Hesap bağlantısı kaydedilemedi! Lütfen tekrar deneyin.\n```');
       }
     }
   }
@@ -1350,19 +1350,19 @@ async function handleRobloxChange(interaction) {
   // Hesap bağlı mı kontrol et
   const existingLink = getLinkedRobloxUsername(discordUserId);
   if (!existingLink) {
-    return interaction.editReply('> Discord hesabınız henüz bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanın.');
+    return interaction.editReply('```diff\n- Discord hesabınız henüz bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanın.\n```');
   }
   
   const robloxNick = interaction.options.getString('kişi');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('> Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.');
+    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.\n```');
   }
   
   const rankInfo = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!rankInfo) {
-    return interaction.editReply('> Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.');
+    return interaction.editReply('```diff\n- Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.\n```');
   }
   
   // Bekleyen doğrulama var mı kontrol et
@@ -1398,7 +1398,7 @@ async function handleRobloxChange(interaction) {
         
         return interaction.editReply({ embeds: [embed] });
       } else {
-        return interaction.editReply('> Hesap değişikliği kaydedilemedi! Lütfen tekrar deneyin.');
+        return interaction.editReply('```diff\n+ Hesap değişikliği kaydedilemedi! Lütfen tekrar deneyin.\n```');
       }
     }
   }

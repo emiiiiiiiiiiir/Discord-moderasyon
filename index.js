@@ -660,7 +660,7 @@ client.on('interactionCreate', async (interaction) => {
       
       try {
         if (interaction.deferred || interaction.replied) {
-          await interaction.editReply('```diff\n+ Bir hata oluştu!\n```');
+          await interaction.editReply('```diff\n- Bir hata oluştu!\n```');
         } else {
           await interaction.reply({ 
             content: '```diff\n- Bir hata oluştu!\n```', 
@@ -732,7 +732,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (config.allowedRanks && !config.allowedRanks.includes(managerRank.rank)) {
     return { 
       allowed: false, 
-      message: `> Sadece ${config.allowedRanks.join(', ')} seviye rütbeler rütbe işlemi yapabilir! (Sizin rütbeniz: ${managerRank.rank})` 
+      message: `\`\`\`diff\n- Sadece ${config.allowedRanks.join(', ')} seviye rütbeler rütbe işlemi yapabilir! (Sizin rütbeniz: ${managerRank.rank})\n\`\`\`` 
     };
   }
 
@@ -741,7 +741,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (targetRank > maxAllowedRank) {
     return { 
       allowed: false, 
-      message: `> En fazla ${maxAllowedRank} seviye rütbe verebilirsiniz! (Hedef rütbe: ${targetRank})` 
+      message: `\`\`\`diff\n- En fazla ${maxAllowedRank} seviye rütbe verebilirsiniz! (Hedef rütbe: ${targetRank})\n\`\`\`` 
     };
   }
 
@@ -802,7 +802,7 @@ async function handleRankChange(interaction) {
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
-    return interaction.editReply('> Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
+    return interaction.editReply('```diff\n- Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.\n```');
   }
   
   const targetRole = roles.find(r => r.name.toLowerCase() === targetRankName.toLowerCase());
@@ -861,7 +861,7 @@ async function handleRankPromotion(interaction) {
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
-    return interaction.editReply('> Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
+    return interaction.editReply('```diff\n- Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.\n```');
   }
   
   const sortedRoles = roles.sort((a, b) => a.rank - b.rank);
@@ -922,7 +922,7 @@ async function handleRankDemotion(interaction) {
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
-    return interaction.editReply('> Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.');
+    return interaction.editReply('```diff\n- Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.\n```');
   }
   
   const sortedRoles = roles.sort((a, b) => a.rank - b.rank);
@@ -967,7 +967,7 @@ async function handleRankDemotion(interaction) {
 
 async function handleBan(interaction) {
   if (!interaction.member.roles.cache.some(role => config.adminRoleIds.includes(role.id))) {
-    return interaction.reply({ content: '```diff\n+ Bu komutu kullanma yetkiniz yok!\n```', ephemeral: true });
+    return interaction.reply({ content: '```diff\n- Bu komutu kullanma yetkiniz yok!\n```', ephemeral: true });
   }
   
   await interaction.deferReply();
@@ -1013,13 +1013,13 @@ async function handleBan(interaction) {
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Yasaklama hatası:', error);
-    await interaction.editReply('> Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin.');
+    await interaction.editReply('```diff\n- Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin.\n```');
   }
 }
 
 async function handleUnban(interaction) {
   if (!interaction.member.roles.cache.some(role => config.adminRoleIds.includes(role.id))) {
-    return interaction.reply({ content: '```diff\n+ Bu komutu kullanma yetkiniz yok!\n```', ephemeral: true });
+    return interaction.reply({ content: '```diff\n- Bu komutu kullanma yetkiniz yok!\n```', ephemeral: true });
   }
   
   await interaction.deferReply();
@@ -1062,7 +1062,7 @@ async function handleUnban(interaction) {
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Yasak kaldırma hatası:', error);
-    await interaction.editReply('> Yasak kaldırılamadı! Kullanıcı ID\'sini kontrol edin.');
+    await interaction.editReply('```diff\n- Yasak kaldırılamadı! Kullanıcı ID\'sini kontrol edin.\n```');
   }
 }
 

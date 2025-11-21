@@ -660,7 +660,7 @@ client.on('interactionCreate', async (interaction) => {
       
       try {
         if (interaction.deferred || interaction.replied) {
-          await interaction.editReply('```diff\n- Bir hata oluştu!\n```');
+          await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Bir hata oluştu!\n```').setColor(0xED4245)] });
         } else {
           await interaction.reply({ 
             content: '```diff\n- Bir hata oluştu!\n```', 
@@ -688,7 +688,7 @@ client.on('interactionCreate', async (interaction) => {
       }
     } catch (error) {
       console.error('Buton hatası:', error);
-      await interaction.reply({ content: '```diff\n- Bir hata oluştu!\n```', flags: 64 });
+      await interaction.reply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Bir hata oluştu!\n```').setColor(0xED4245)], flags: 64 });
     }
   }
   else if (interaction.isStringSelectMenu()) {
@@ -698,7 +698,7 @@ client.on('interactionCreate', async (interaction) => {
       }
     } catch (error) {
       console.error('Select menu hatası:', error);
-      await interaction.reply({ content: '```diff\n- Bir hata oluştu!\n```', flags: 64 });
+      await interaction.reply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Bir hata oluştu!\n```').setColor(0xED4245)], flags: 64 });
     }
   }
 });
@@ -708,7 +708,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (!managerUsername) {
     return { 
       allowed: false, 
-      message: '```diff\n- Discord hesabınız bir Roblox hesabına bağlı değil! Önce /roblox-bağla komutunu kullanarak hesabınızı bağlayın.\n```' 
+      message: { embeds: [new EmbedBuilder().setDescription('```diff\n- Discord hesabınız bir Roblox hesabına bağlı değil! Önce /roblox-bağla komutunu kullanarak hesabınızı bağlayın.\n```').setColor(0xED4245)] } 
     };
   }
 
@@ -716,7 +716,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (!managerId) {
     return { 
       allowed: false, 
-      message: '```diff\n- Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.\n```' 
+      message: { embeds: [new EmbedBuilder().setDescription('```diff\n- Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.\n```').setColor(0xED4245)] } 
     };
   }
 
@@ -724,7 +724,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (!managerRank) {
     return { 
       allowed: false, 
-      message: '```diff\n- Grupta olmayan kişiler rütbe veremez!\n```' 
+      message: { embeds: [new EmbedBuilder().setDescription('```diff\n- Grupta olmayan kişiler rütbe veremez!\n```').setColor(0xED4245)] } 
     };
   }
 
@@ -732,7 +732,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (config.allowedRanks && !config.allowedRanks.includes(managerRank.rank)) {
     return { 
       allowed: false, 
-      message: `\`\`\`diff\n- Sadece ${config.allowedRanks.join(', ')} seviye rütbeler rütbe işlemi yapabilir! (Sizin rütbeniz: ${managerRank.rank})\n\`\`\`` 
+      message: { embeds: [new EmbedBuilder().setDescription(`\`).setColor(0x57F287)] }\`\`diff\n- Sadece ${config.allowedRanks.join(', ')} seviye rütbeler rütbe işlemi yapabilir! (Sizin rütbeniz: ${managerRank.rank})\n\`\`\`` 
     };
   }
 
@@ -741,7 +741,7 @@ async function checkRankPermissions(discordUserId, targetRank) {
   if (targetRank > maxAllowedRank) {
     return { 
       allowed: false, 
-      message: `\`\`\`diff\n- En fazla ${maxAllowedRank} seviye rütbe verebilirsiniz! (Hedef rütbe: ${targetRank})\n\`\`\`` 
+      message: { embeds: [new EmbedBuilder().setDescription(`\`).setColor(0x57F287)] }\`\`diff\n- En fazla ${maxAllowedRank} seviye rütbe verebilirsiniz! (Hedef rütbe: ${targetRank})\n\`\`\`` 
     };
   }
 
@@ -761,14 +761,14 @@ async function handleRankQuery(interaction) {
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('```diff\n- Kullanıcı bulunamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Kullanıcı bulunamadı!\n```').setColor(0xED4245)] });
   }
   
   const userInfo = await robloxAPI.getUserInfo(userId);
   const rankInfo = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   
   if (!rankInfo) {
-    return interaction.editReply('```diff\n- Kullanıcı grupta değil!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Kullanıcı grupta değil!\n```').setColor(0xED4245)] });
   }
   
   const embed = new EmbedBuilder()
@@ -795,20 +795,20 @@ async function handleRankChange(interaction) {
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('```diff\n- Hedef kullanıcı bulunamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Hedef kullanıcı bulunamadı!\n```').setColor(0xED4245)] });
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
-    return interaction.editReply('```diff\n- Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.\n```').setColor(0xED4245)] });
   }
   
   const targetRole = roles.find(r => r.name.toLowerCase() === targetRankName.toLowerCase());
   
   if (!targetRole) {
-    return interaction.editReply('```diff\n- Belirtilen rütbe bulunamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Belirtilen rütbe bulunamadı!\n```').setColor(0xED4245)] });
   }
   
   const permissionCheck = await checkRankPermissions(interaction.user.id, targetRole.rank);
@@ -817,7 +817,7 @@ async function handleRankChange(interaction) {
   }
   
   if (userId === permissionCheck.managerId) {
-    return interaction.editReply('```diff\n- Kendi rütbeni değiştiremezsin!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Kendi rütbeni değiştiremezsin!\n```').setColor(0x57F287)] });
   }
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, targetRole.id, ROBLOX_COOKIE);
@@ -839,7 +839,7 @@ async function handleRankChange(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('```diff\n+ Rütbe değiştirilemedi! Cookie kontrolü yapın.\n```');
+    await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n+ Rütbe değiştirilemedi! Cookie kontrolü yapın.\n```').setColor(0x57F287)] });
   }
 }
 
@@ -851,24 +851,24 @@ async function handleRankPromotion(interaction) {
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('```diff\n- Hedef kullanıcı bulunamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Hedef kullanıcı bulunamadı!\n```').setColor(0xED4245)] });
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!currentRank) {
-    return interaction.editReply('```diff\n- Kullanıcı grupta değil!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Kullanıcı grupta değil!\n```').setColor(0xED4245)] });
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
-    return interaction.editReply('```diff\n- Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.\n```').setColor(0xED4245)] });
   }
   
   const sortedRoles = roles.sort((a, b) => a.rank - b.rank);
   const currentIndex = sortedRoles.findIndex(r => r.rank === currentRank.rank);
   
   if (currentIndex === sortedRoles.length - 1) {
-    return interaction.editReply('```diff\n+ Kullanıcı zaten en üst rütbede!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n+ Kullanıcı zaten en üst rütbede!\n```').setColor(0x57F287)] });
   }
   
   const nextRole = sortedRoles[currentIndex + 1];
@@ -879,7 +879,7 @@ async function handleRankPromotion(interaction) {
   }
   
   if (userId === permissionCheck.managerId) {
-    return interaction.editReply('```diff\n- Kendi rütbeni değiştiremezsin!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Kendi rütbeni değiştiremezsin!\n```').setColor(0x57F287)] });
   }
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, nextRole.id, ROBLOX_COOKIE);
@@ -900,7 +900,7 @@ async function handleRankPromotion(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('```diff\n+ Terfi işlemi başarısız!\n```');
+    await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n+ Terfi işlemi başarısız!\n```').setColor(0xED4245)] });
   }
 }
 
@@ -912,24 +912,24 @@ async function handleRankDemotion(interaction) {
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   
   if (!userId) {
-    return interaction.editReply('```diff\n- Hedef kullanıcı bulunamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Hedef kullanıcı bulunamadı!\n```').setColor(0xED4245)] });
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!currentRank) {
-    return interaction.editReply('```diff\n- Kullanıcı grupta değil!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Kullanıcı grupta değil!\n```').setColor(0xED4245)] });
   }
   
   const roles = await robloxAPI.getGroupRoles(config.groupId);
   if (!roles) {
-    return interaction.editReply('```diff\n- Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Grup rütbeleri alınamadı! Grup ID\'sini kontrol edin.\n```').setColor(0xED4245)] });
   }
   
   const sortedRoles = roles.sort((a, b) => a.rank - b.rank);
   const currentIndex = sortedRoles.findIndex(r => r.rank === currentRank.rank);
   
   if (currentIndex === 0) {
-    return interaction.editReply('```diff\n+ Kullanıcı zaten en alt rütbede!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n+ Kullanıcı zaten en alt rütbede!\n```').setColor(0x57F287)] });
   }
   
   const prevRole = sortedRoles[currentIndex - 1];
@@ -940,7 +940,7 @@ async function handleRankDemotion(interaction) {
   }
   
   if (userId === permissionCheck.managerId) {
-    return interaction.editReply('```diff\n- Kendi rütbeni değiştiremezsin!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Kendi rütbeni değiştiremezsin!\n```').setColor(0x57F287)] });
   }
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, prevRole.id, ROBLOX_COOKIE);
@@ -961,13 +961,13 @@ async function handleRankDemotion(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('```diff\n+ Tenzil işlemi başarısız!\n```');
+    await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n+ Tenzil işlemi başarısız!\n```').setColor(0xED4245)] });
   }
 }
 
 async function handleBan(interaction) {
   if (!interaction.member.roles.cache.some(role => config.adminRoleIds.includes(role.id))) {
-    return interaction.reply({ content: '```diff\n- Bu komutu kullanma yetkiniz yok!\n```', ephemeral: true });
+    return interaction.reply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Bu komutu kullanma yetkiniz yok!\n```').setColor(0x57F287)], ephemeral: true });
   }
   
   await interaction.deferReply();
@@ -1013,13 +1013,13 @@ async function handleBan(interaction) {
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Yasaklama hatası:', error);
-    await interaction.editReply('```diff\n- Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin.\n```');
+    await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Kullanıcı yasaklanamadı! Kullanıcı ID\'sini kontrol edin.\n```').setColor(0xED4245)] });
   }
 }
 
 async function handleUnban(interaction) {
   if (!interaction.member.roles.cache.some(role => config.adminRoleIds.includes(role.id))) {
-    return interaction.reply({ content: '```diff\n- Bu komutu kullanma yetkiniz yok!\n```', ephemeral: true });
+    return interaction.reply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Bu komutu kullanma yetkiniz yok!\n```').setColor(0x57F287)], ephemeral: true });
   }
   
   await interaction.deferReply();
@@ -1062,7 +1062,7 @@ async function handleUnban(interaction) {
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error('Yasak kaldırma hatası:', error);
-    await interaction.editReply('```diff\n- Yasak kaldırılamadı! Kullanıcı ID\'sini kontrol edin.\n```');
+    await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Yasak kaldırılamadı! Kullanıcı ID\'sini kontrol edin.\n```').setColor(0xED4245)] });
   }
 }
 
@@ -1072,7 +1072,7 @@ async function handleActivityQuery(interaction) {
   const activity = await robloxAPI.getGameActivity(config.gameId);
   
   if (!activity) {
-    return interaction.editReply('```diff\n- Oyun bilgisi alınamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Oyun bilgisi alınamadı!\n```').setColor(0xED4245)] });
   }
   
   await interaction.editReply(`\`\`\`diff\n+ Oyunun mevcut aktifliği: ${activity.playing}\n\`\`\``);
@@ -1085,7 +1085,7 @@ async function handleGroupList(interaction) {
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Roblox kullanıcısı bulunamadı!\n```').setColor(0xED4245)] });
   }
   
   const groups = await robloxAPI.getUserGroups(userId);
@@ -1113,12 +1113,12 @@ async function handleBranchRankChange(interaction) {
   
   const managerUsername = getLinkedRobloxUsername(interaction.user.id);
   if (!managerUsername) {
-    return interaction.editReply('```diff\n- Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.\n```').setColor(0xED4245)] });
   }
 
   const managerId = await robloxAPI.getUserIdByUsername(managerUsername);
   if (!managerId) {
-    return interaction.editReply('```diff\n- Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.\n```').setColor(0xED4245)] });
   }
   
   const robloxNick = interaction.options.getString('kişi');
@@ -1143,7 +1143,7 @@ async function handleBranchRankChange(interaction) {
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Roblox kullanıcısı bulunamadı!\n```').setColor(0xED4245)] });
   }
   
   const currentRank = await robloxAPI.getUserRankInGroup(userId, branchGroupId);
@@ -1153,7 +1153,7 @@ async function handleBranchRankChange(interaction) {
   
   const branchRoles = await robloxAPI.getGroupRoles(branchGroupId);
   if (!branchRoles) {
-    return interaction.editReply('```diff\n- Branş grup rütbeleri alınamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Branş grup rütbeleri alınamadı!\n```').setColor(0xED4245)] });
   }
   
   const targetRole = branchRoles.find(r => r.name.toLowerCase() === targetRankName.toLowerCase());
@@ -1162,7 +1162,7 @@ async function handleBranchRankChange(interaction) {
   }
   
   if (userId === managerId) {
-    return interaction.editReply('```diff\n- Kendi rütbeni değiştiremezsin!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Kendi rütbeni değiştiremezsin!\n```').setColor(0x57F287)] });
   }
   
   const result = await robloxAPI.setUserRole(userId, branchGroupId, targetRole.id, ROBLOX_COOKIE);
@@ -1185,7 +1185,7 @@ async function handleBranchRankChange(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('```diff\n+ Rütbe değiştirilemedi! Cookie kontrolü yapın veya bot yetkilerini kontrol edin.\n```');
+    await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n+ Rütbe değiştirilemedi! Cookie kontrolü yapın veya bot yetkilerini kontrol edin.\n```').setColor(0x57F287)] });
   }
 }
 
@@ -1194,12 +1194,12 @@ async function handleBranchRequest(interaction) {
   
   const managerUsername = getLinkedRobloxUsername(interaction.user.id);
   if (!managerUsername) {
-    return interaction.editReply('```diff\n- Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Discord hesabınız bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanarak hesabınızı bağlayın.\n```').setColor(0xED4245)] });
   }
 
   const managerId = await robloxAPI.getUserIdByUsername(managerUsername);
   if (!managerId) {
-    return interaction.editReply('```diff\n- Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Bağlı Roblox kullanıcısı bulunamadı! Hesap bağlantınızı kontrol edin.\n```').setColor(0xED4245)] });
   }
   
   const robloxNick = interaction.options.getString('kişi');
@@ -1224,7 +1224,7 @@ async function handleBranchRequest(interaction) {
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı!\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Roblox kullanıcısı bulunamadı!\n```').setColor(0xED4245)] });
   }
   
   let result;
@@ -1272,12 +1272,12 @@ async function handleRobloxLink(interaction) {
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.\n```').setColor(0xED4245)] });
   }
   
   const rankInfo = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!rankInfo) {
-    return interaction.editReply('```diff\n- Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.\n```').setColor(0xED4245)] });
   }
   
   // Bekleyen doğrulama var mı kontrol et
@@ -1311,7 +1311,7 @@ async function handleRobloxLink(interaction) {
         
         return interaction.editReply({ embeds: [embed] });
       } else {
-        return interaction.editReply('```diff\n+ Hesap bağlantısı kaydedilemedi! Lütfen tekrar deneyin.\n```');
+        return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n+ Hesap bağlantısı kaydedilemedi! Lütfen tekrar deneyin.\n```').setColor(0x57F287)] });
       }
     }
   }
@@ -1350,19 +1350,19 @@ async function handleRobloxChange(interaction) {
   // Hesap bağlı mı kontrol et
   const existingLink = getLinkedRobloxUsername(discordUserId);
   if (!existingLink) {
-    return interaction.editReply('```diff\n- Discord hesabınız henüz bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanın.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Discord hesabınız henüz bir Roblox hesabına bağlı değil! Önce `/roblox-bağla` komutunu kullanın.\n```').setColor(0xED4245)] });
   }
   
   const robloxNick = interaction.options.getString('kişi');
   
   const userId = await robloxAPI.getUserIdByUsername(robloxNick);
   if (!userId) {
-    return interaction.editReply('```diff\n- Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Roblox kullanıcısı bulunamadı! Kullanıcı adını kontrol edin.\n```').setColor(0xED4245)] });
   }
   
   const rankInfo = await robloxAPI.getUserRankInGroup(userId, config.groupId);
   if (!rankInfo) {
-    return interaction.editReply('```diff\n- Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.\n```');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n- Bu Roblox kullanıcısı grupta değil! Lütfen önce gruba katılın.\n```').setColor(0xED4245)] });
   }
   
   // Bekleyen doğrulama var mı kontrol et
@@ -1398,7 +1398,7 @@ async function handleRobloxChange(interaction) {
         
         return interaction.editReply({ embeds: [embed] });
       } else {
-        return interaction.editReply('```diff\n+ Hesap değişikliği kaydedilemedi! Lütfen tekrar deneyin.\n```');
+        return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('```diff\n+ Hesap değişikliği kaydedilemedi! Lütfen tekrar deneyin.\n```').setColor(0x57F287)] });
       }
     }
   }
@@ -1495,11 +1495,143 @@ async function handleAnnouncement(interaction) {
   await interaction.editReply(sonucMesaji);
 }
 
+async function handleAnnouncement(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+  
+  const mesaj = interaction.options.getString('mesaj');
+  const kanalAdi = interaction.options.getString('kanal_adi');
+  const görsel = interaction.options.getAttachment('görsel');
+  const member = interaction.member;
+  
+  let rolAdi;
+  if (interaction.user.username === 'emir_1881') {
+    rolAdi = 'İttifak Ordusu Bot Geliştiricisi';
+  } else {
+    const highestRole = member.roles.highest;
+    rolAdi = highestRole.name;
+  }
+  
+  const duyuruMetni = `${mesaj}\n\n-# ${interaction.user.username}, ${rolAdi}`;
+  
+  const guilds = client.guilds.cache;
+  let successCount = 0;
+  let failCount = 0;
+  const failedGuilds = [];
+  
+  for (const [guildId, guild] of guilds) {
+    try {
+      const kanal = guild.channels.cache.find(ch => 
+        ch.name.toLowerCase() === kanalAdi.toLowerCase() && ch.isTextBased()
+      );
+      
+      if (kanal) {
+        const messageOptions = { content: duyuruMetni };
+        
+        if (görsel) {
+          messageOptions.files = [görsel.url];
+        }
+        
+        await kanal.send(messageOptions);
+        successCount++;
+      } else {
+        failCount++;
+        failedGuilds.push(`${guild.name} (kanal bulunamadı)`);
+      }
+    } catch (error) {
+      console.error(`${guild.name} sunucusunda duyuru hatası:`, error.message);
+      failCount++;
+      failedGuilds.push(`${guild.name} (${error.message})`);
+    }
+  }
+  
+  let sonucMesaji = `**Duyuru Gönderildi**\n\n`;
+  sonucMesaji += `Kanal: **${kanalAdi}**\n`;
+  if (görsel) {
+    sonucMesaji += `Görsel: ✓ Eklendi\n`;
+  }
+  sonucMesaji += `✓ Başarılı: ${successCount} sunucu\n`;
+  
+  if (failCount > 0) {
+    sonucMesaji += `✗ Başarısız: ${failCount} sunucu\n`;
+    if (failedGuilds.length > 0 && failedGuilds.length <= 10) {
+      sonucMesaji += `\nBaşarısız sunucular:\n${failedGuilds.map(g => `- ${g}`).join('\n')}`;
+    }
+  }
+  
+  await interaction.editReply(sonucMesaji);
+}
+
+async function handleAnnouncement(interaction) {
+  await interaction.deferReply({ ephemeral: true });
+  
+  const mesaj = interaction.options.getString('mesaj');
+  const kanalAdi = interaction.options.getString('kanal_adi');
+  const görsel = interaction.options.getAttachment('görsel');
+  const member = interaction.member;
+  
+  let rolAdi;
+  if (interaction.user.username === 'emir_1881') {
+    rolAdi = 'İttifak Ordusu Bot Geliştiricisi';
+  } else {
+    const highestRole = member.roles.highest;
+    rolAdi = highestRole.name;
+  }
+  
+  const duyuruMetni = `${mesaj}\n\n-# ${interaction.user.username}, ${rolAdi}`;
+  
+  const guilds = client.guilds.cache;
+  let successCount = 0;
+  let failCount = 0;
+  const failedGuilds = [];
+  
+  for (const [guildId, guild] of guilds) {
+    try {
+      const kanal = guild.channels.cache.find(ch => 
+        ch.name.toLowerCase() === kanalAdi.toLowerCase() && ch.isTextBased()
+      );
+      
+      if (kanal) {
+        const messageOptions = { content: duyuruMetni };
+        
+        if (görsel) {
+          messageOptions.files = [görsel.url];
+        }
+        
+        await kanal.send(messageOptions);
+        successCount++;
+      } else {
+        failCount++;
+        failedGuilds.push(`${guild.name} (kanal bulunamadı)`);
+      }
+    } catch (error) {
+      console.error(`${guild.name} sunucusunda duyuru hatası:`, error.message);
+      failCount++;
+      failedGuilds.push(`${guild.name} (${error.message})`);
+    }
+  }
+  
+  let sonucMesaji = `**Duyuru Gönderildi**\n\n`;
+  sonucMesaji += `Kanal: **${kanalAdi}**\n`;
+  if (görsel) {
+    sonucMesaji += `Görsel: ✓ Eklendi\n`;
+  }
+  sonucMesaji += `✓ Başarılı: ${successCount} sunucu\n`;
+  
+  if (failCount > 0) {
+    sonucMesaji += `✗ Başarısız: ${failCount} sunucu\n`;
+    if (failedGuilds.length > 0 && failedGuilds.length <= 10) {
+      sonucMesaji += `\nBaşarısız sunucular:\n${failedGuilds.map(g => `- ${g}`).join('\n')}`;
+    }
+  }
+  
+  await interaction.editReply(sonucMesaji);
+}
+
 async function handleTicketSetup(interaction) {
   await interaction.deferReply({ ephemeral: true });
   
   if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
-    return interaction.editReply('Bu komutu kullanmak için yönetici yetkisine sahip olmalısınız!');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('Bu komutu kullanmak için yönetici yetkisine sahip olmalısınız!').setColor(0x57F287)] });
   }
   
   const embed = new EmbedBuilder()
@@ -1521,7 +1653,7 @@ async function handleTicketSetup(interaction) {
   const row = new ActionRowBuilder().addComponents(button);
   
   await interaction.channel.send({ embeds: [embed], components: [row] });
-  await interaction.editReply('Destek sistemi mesajı başarıyla gönderildi!');
+  await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('Destek sistemi mesajı başarıyla gönderildi!').setColor(0x57F287)] });
 }
 
 async function handleTicketMenuButton(interaction) {
@@ -1585,7 +1717,7 @@ async function handleTicketCategorySelect(interaction) {
   const activeTickets = loadActiveTickets();
   
   if (activeTickets[userId]) {
-    return interaction.editReply('Zaten açık bir ticketınız var! Önce mevcut ticketı kapatmalısınız.');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('Zaten açık bir ticketınız var! Önce mevcut ticketı kapatmalısınız.').setColor(0x57F287)] });
   }
   
   const categoryNames = {
@@ -1692,7 +1824,7 @@ async function handleTicketCategorySelect(interaction) {
     }
   } catch (error) {
     console.error('Ticket kanalı oluşturma hatası:', error);
-    await interaction.editReply('Ticket kanalı oluşturulurken bir hata oluştu! Lütfen bot yetkilerini kontrol edin.');
+    await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('Ticket kanalı oluşturulurken bir hata oluştu! Lütfen bot yetkilerini kontrol edin.').setColor(0xED4245)] });
   }
 }
 
@@ -1767,7 +1899,7 @@ async function handleTicketClose(interaction) {
   }
   
   if (!ticketToClose) {
-    return interaction.editReply('Bu kanal bir ticket kanalı değil!');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('Bu kanal bir ticket kanalı değil!').setColor(0xED4245)] });
   }
   
   const isOwner = userId === ticketOwner;
@@ -1775,10 +1907,10 @@ async function handleTicketClose(interaction) {
                         config.supportRoleIds.some(roleId => interaction.member.roles.cache.has(roleId));
   
   if (!isOwner && !hasPermission) {
-    return interaction.editReply('Bu ticketı kapatma yetkiniz yok!');
+    return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('Bu ticketı kapatma yetkiniz yok!').setColor(0x57F287)] });
   }
   
-  await interaction.editReply('Ticket kapatılıyor, transcript oluşturuluyor...');
+  await interaction.editReply({ embeds: [new EmbedBuilder().setDescription('Ticket kapatılıyor, transcript oluşturuluyor...').setColor(0x57F287)] });
   
   const transcript = await createTranscript(interaction.channel);
   
@@ -1947,7 +2079,7 @@ async function handleTicketRating(interaction, rating, ticketOwnerId) {
     await interaction.deferReply({ ephemeral: true });
     
     if (interaction.user.id !== ticketOwnerId) {
-      return interaction.editReply('Bu değerlendirmeyi sadece ticket sahibi yapabilir!');
+      return interaction.editReply({ embeds: [new EmbedBuilder().setDescription('Bu değerlendirmeyi sadece ticket sahibi yapabilir!').setColor(0x57F287)] });
     }
     
     const ratingEmojis = {

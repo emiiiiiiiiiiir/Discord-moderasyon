@@ -54,24 +54,6 @@ function validateEnvironmentVariables() {
   console.log('✓ Tüm environment variable\'lar mevcut');
 }
 
-
-// Helper fonksiyonlar
-function createErrorEmbed(message) {
-  return {
-    embeds: [new EmbedBuilder()
-      .setDescription(message)
-      .setColor(0xED4245)]
-  };
-}
-
-function createSuccessEmbed(message) {
-  return {
-    embeds: [new EmbedBuilder()
-      .setDescription(message)
-      .setColor(0x57F287)]
-  };
-}
-
 function validateConfig() {
   const warnings = [];
   

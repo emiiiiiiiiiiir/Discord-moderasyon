@@ -688,7 +688,7 @@ client.on('interactionCreate', async (interaction) => {
       }
     } catch (error) {
       console.error('Buton hatası:', error);
-      await interaction.reply({ content: '```diff\n- Bir hata oluştu!\n```', flags: 64 }).catch(() => {});
+      await interaction.reply({ content: '```diff\n- Bir hata oluştu!\n```', flags: 64 });
     }
   }
   else if (interaction.isStringSelectMenu()) {
@@ -698,7 +698,7 @@ client.on('interactionCreate', async (interaction) => {
       }
     } catch (error) {
       console.error('Select menu hatası:', error);
-      await interaction.reply({ content: '```diff\n- Bir hata oluştu!\n```', flags: 64 }).catch(() => {});
+      await interaction.reply({ content: '```diff\n- Bir hata oluştu!\n```', flags: 64 });
     }
   }
 });
@@ -813,7 +813,7 @@ async function handleRankChange(interaction) {
   
   const permissionCheck = await checkRankPermissions(interaction.user.id, targetRole.rank);
   if (!permissionCheck.allowed) {
-    return interaction.editReply(permissionCheck.message);
+    return interaction.editReply(permissionCheck.message && permissionCheck.message.embeds ? permissionCheck.message : { embeds: [new EmbedBuilder().setDescription('Hata oluştu').setColor(0xED4245)] });
   }
   
   if (userId === permissionCheck.managerId) {
@@ -875,7 +875,7 @@ async function handleRankPromotion(interaction) {
   
   const permissionCheck = await checkRankPermissions(interaction.user.id, nextRole.rank);
   if (!permissionCheck.allowed) {
-    return interaction.editReply(permissionCheck.message);
+    return interaction.editReply(permissionCheck.message && permissionCheck.message.embeds ? permissionCheck.message : { embeds: [new EmbedBuilder().setDescription('Hata oluştu').setColor(0xED4245)] });
   }
   
   if (userId === permissionCheck.managerId) {
@@ -936,7 +936,7 @@ async function handleRankDemotion(interaction) {
   
   const permissionCheck = await checkRankPermissions(interaction.user.id, prevRole.rank);
   if (!permissionCheck.allowed) {
-    return interaction.editReply(permissionCheck.message);
+    return interaction.editReply(permissionCheck.message && permissionCheck.message.embeds ? permissionCheck.message : { embeds: [new EmbedBuilder().setDescription('Hata oluştu').setColor(0xED4245)] });
   }
   
   if (userId === permissionCheck.managerId) {

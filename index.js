@@ -755,6 +755,10 @@ async function checkRankPermissions(discordUserId, targetRank) {
 }
 
 async function handleRankQuery(interaction) {
+  if (!interaction.guild.name.includes('AEK')) {
+    return interaction.reply({ content: 'HATA: Bu komut sadece AEK isimli sunucularda kullanılabilir!', ephemeral: true });
+  }
+  
   await interaction.deferReply();
   
   const robloxNick = interaction.options.getString('kişi');
@@ -787,6 +791,10 @@ async function handleRankQuery(interaction) {
 }
 
 async function handleRankChange(interaction) {
+  if (!interaction.guild.name.includes('AEK')) {
+    return interaction.reply({ content: 'HATA: Bu komut sadece AEK isimli sunucularda kullanılabilir!', ephemeral: true });
+  }
+  
   await interaction.deferReply();
   
   const robloxNick = interaction.options.getString('kişi');
@@ -844,6 +852,10 @@ async function handleRankChange(interaction) {
 }
 
 async function handleRankPromotion(interaction) {
+  if (!interaction.guild.name.includes('AEK')) {
+    return interaction.reply({ content: 'HATA: Bu komut sadece AEK isimli sunucularda kullanılabilir!', ephemeral: true });
+  }
+  
   await interaction.deferReply();
   
   const robloxNick = interaction.options.getString('kişi');
@@ -905,6 +917,10 @@ async function handleRankPromotion(interaction) {
 }
 
 async function handleRankDemotion(interaction) {
+  if (!interaction.guild.name.includes('AEK')) {
+    return interaction.reply({ content: 'HATA: Bu komut sadece AEK isimli sunucularda kullanılabilir!', ephemeral: true });
+  }
+  
   await interaction.deferReply();
   
   const robloxNick = interaction.options.getString('kişi');
@@ -1109,6 +1125,10 @@ async function handleGroupList(interaction) {
 }
 
 async function handleBranchRankChange(interaction) {
+  if (!interaction.guild.name.includes('AEK')) {
+    return interaction.reply({ content: 'HATA: Bu komut sadece AEK isimli sunucularda kullanılabilir!', ephemeral: true });
+  }
+  
   await interaction.deferReply();
   
   const managerUsername = getLinkedRobloxUsername(interaction.user.id);
@@ -1190,6 +1210,10 @@ async function handleBranchRankChange(interaction) {
 }
 
 async function handleBranchRequest(interaction) {
+  if (!interaction.guild.name.includes('AEK')) {
+    return interaction.reply({ content: 'HATA: Bu komut sadece AEK isimli sunucularda kullanılabilir!', ephemeral: true });
+  }
+  
   await interaction.deferReply();
   
   const managerUsername = getLinkedRobloxUsername(interaction.user.id);

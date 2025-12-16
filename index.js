@@ -1752,8 +1752,8 @@ async function handleTicketCategorySelect(interaction) {
     await interaction.editReply(`Ticketınız başarıyla oluşturuldu: ${ticketChannel}`);
     
     if (config.ticketLogChannelId && config.ticketLogChannelId !== 'TICKET_LOG_CHANNEL_ID') {
-      const logChannel = interaction.guild.channels.cache.get(config.ticketLogChannelId);
-      if (logChannel) {
+      const logChannel = await interaction.client.channels.fetch(config.ticketLogChannelId).catch(() => null);
+      if (logChannel && logChannel.isTextBased()) {
         const logEmbed = new EmbedBuilder()
           .setTitle('Yeni Ticket Açıldı')
           .addFields(
@@ -1919,8 +1919,8 @@ async function handleTicketClose(interaction) {
   }
   
   if (config.ticketLogChannelId && config.ticketLogChannelId !== 'TICKET_LOG_CHANNEL_ID') {
-    const logChannel = interaction.guild.channels.cache.get(config.ticketLogChannelId);
-    if (logChannel) {
+    const logChannel = await interaction.client.channels.fetch(config.ticketLogChannelId).catch(() => null);
+    if (logChannel && logChannel.isTextBased()) {
       const logEmbed = new EmbedBuilder()
         .setTitle('Ticket Kapatıldı')
         .addFields(
@@ -2002,8 +2002,8 @@ async function handleTicketClaim(interaction) {
   await interaction.editReply({ embeds: [embed] });
   
   if (config.ticketLogChannelId && config.ticketLogChannelId !== 'TICKET_LOG_CHANNEL_ID') {
-    const logChannel = interaction.guild.channels.cache.get(config.ticketLogChannelId);
-    if (logChannel) {
+    const logChannel = await interaction.client.channels.fetch(config.ticketLogChannelId).catch(() => null);
+    if (logChannel && logChannel.isTextBased()) {
       const logEmbed = new EmbedBuilder()
         .setTitle('Ticket Alındı')
         .addFields(

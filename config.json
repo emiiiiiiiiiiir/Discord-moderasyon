@@ -15,8 +15,8 @@
   "branchManagerRanks": [254, 255],
   "webhookUrl": "https://discord.com/api/webhooks/1438698267071221801/wtiP-fo8ttaY1gwesfkNtsTiHKplddM34_rTyiiuO5TPeC52A8GXldRDkRDV1jIP7914",
   "branchWebhookUrl": "https://discord.com/api/webhooks/1438701679150108672/4XnwSUPcBEZr3pc8Y1GHVsz2ddTxsnMEws_swUxFSb2v46-BPDRZe5TMqXEVvGmUqnXD",
-  "ticketCategoryId": "1439347320792682526",
-  "ticketLogChannelId": "1404513603767500910",
-  "supportRoleIds": ["1430254758110826547", "1420425067212574720"],
+  "ticketCategoryId": "1450545317421518939",
+  "ticketLogChannelId": "1450545687359131700",
+  "supportRoleIds": ["1450546612484178061"],
   "ticketImageUrl": ""
 }

@@ -1526,13 +1526,22 @@ async function handleTicketSetup(interaction) {
     return interaction.editReply('Bu komutu kullanmak için yönetici yetkisine sahip olmalısınız!');
   }
   
+  const { AttachmentBuilder } = require('discord.js');
+  const ticketImagePath = './attached_assets/image-26_1765902198997.png';
+  
   const embed = new EmbedBuilder()
     .setTitle('Turkish Armed Forces')
     .setDescription('**Moderatör Bileti**\nDiscord ile ilgili yaşanan sorunlar ve yardım talepleri için bu bileti seç.\n\n**Gamepass Bileti**\nRobux ile rütbe, branş üyeliği alımında bu bilet türünü seç.\n\n**Oyun Destek Bileti**\nOyunumuzda yaşanan sorunlar hakkında yardım almak için bu bileti seç.\n\n**Rütbe Destek Bileti**\nRütbeniz hakkında yaşanan sorunlar hakkında yardım almak için bu bileti seç.(Rütbem Gitti)\n\n**Reklam Destek Bileti**\nDiscord veya Oyun üzerinde reklam yapan insanları şikayet edebilmek için bu bilet türünü seç.\n\n**Geri Dönüş&Transfer Bileti**\nGeri dönüş veya transfer işlemleri hakkında destek almak için bu bileti seç.')
     .setColor(0x5865F2)
     .setFooter({ text: 'Destek Sistemi' });
   
-  if (config.ticketImageUrl && config.ticketImageUrl !== 'GORSEL_URL_BURAYA' && config.ticketImageUrl.startsWith('http')) {
+  const messageOptions = { embeds: [embed], components: [] };
+  
+  if (fs.existsSync(ticketImagePath)) {
+    const attachment = new AttachmentBuilder(ticketImagePath, { name: 'ticket_image.png' });
+    embed.setImage('attachment://ticket_image.png');
+    messageOptions.files = [attachment];
+  } else if (config.ticketImageUrl && config.ticketImageUrl !== 'GORSEL_URL_BURAYA' && config.ticketImageUrl.startsWith('http')) {
     embed.setImage(config.ticketImageUrl);
   }
   
@@ -1543,8 +1552,9 @@ async function handleTicketSetup(interaction) {
     .setEmoji('🎫');
   
   const row = new ActionRowBuilder().addComponents(button);
+  messageOptions.components = [row];
   
-  await interaction.channel.send({ embeds: [embed], components: [row] });
+  await interaction.channel.send(messageOptions);
   await interaction.editReply('Destek sistemi mesajı başarıyla gönderildi!');
 }
 

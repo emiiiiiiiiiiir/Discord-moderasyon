@@ -1091,7 +1091,11 @@ async function handleActivityQuery(interaction) {
     return interaction.editReply('HATA: Oyun bilgisi alınamadı!');
   }
   
-  await interaction.editReply(`${activity.name} oyununun mevcut aktifliği: ${activity.playing}`);
+  const embed = new EmbedBuilder()
+    .setDescription(`**${activity.name}** oyununun mevcut aktifliği: **${activity.playing}** oyuncu`)
+    .setColor(0x57F287);
+  
+  await interaction.editReply({ embeds: [embed] });
 }
 
 async function handleGroupList(interaction) {

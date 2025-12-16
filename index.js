@@ -869,7 +869,7 @@ async function handleRankChange(interaction) {
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, targetRole.id, ROBLOX_COOKIE);
   
-  if (result) {
+  if (result && !result.error) {
     await sendRankChangeWebhook({
       type: 'change',
       targetUser: robloxNick,
@@ -886,7 +886,8 @@ async function handleRankChange(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('HATA: Rütbe değiştirilemedi! Cookie kontrolü yapın.');
+    const errorMsg = result?.error?.errors?.[0]?.message || 'Bilinmeyen hata';
+    await interaction.editReply(`HATA: Rütbe değiştirilemedi! ${errorMsg}`);
   }
 }
 
@@ -935,7 +936,7 @@ async function handleRankPromotion(interaction) {
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, nextRole.id, ROBLOX_COOKIE);
   
-  if (result) {
+  if (result && !result.error) {
     await sendRankChangeWebhook({
       type: 'promotion',
       targetUser: robloxNick,
@@ -951,7 +952,8 @@ async function handleRankPromotion(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('HATA: Terfi işlemi başarısız!');
+    const errorMsg = result?.error?.errors?.[0]?.message || 'Bilinmeyen hata';
+    await interaction.editReply(`HATA: Terfi işlemi başarısız! ${errorMsg}`);
   }
 }
 
@@ -1000,7 +1002,7 @@ async function handleRankDemotion(interaction) {
   
   const result = await robloxAPI.setUserRole(userId, config.groupId, prevRole.id, ROBLOX_COOKIE);
   
-  if (result) {
+  if (result && !result.error) {
     await sendRankChangeWebhook({
       type: 'demotion',
       targetUser: robloxNick,
@@ -1016,7 +1018,8 @@ async function handleRankDemotion(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('HATA: Tenzil işlemi başarısız!');
+    const errorMsg = result?.error?.errors?.[0]?.message || 'Bilinmeyen hata';
+    await interaction.editReply(`HATA: Tenzil işlemi başarısız! ${errorMsg}`);
   }
 }
 
@@ -1230,7 +1233,7 @@ async function handleBranchRankChange(interaction) {
   
   const result = await robloxAPI.setUserRole(userId, branchGroupId, targetRole.id, ROBLOX_COOKIE);
   
-  if (result) {
+  if (result && !result.error) {
     await sendRankChangeWebhook({
       type: 'branch',
       targetUser: robloxNick,
@@ -1248,7 +1251,8 @@ async function handleBranchRankChange(interaction) {
     
     await interaction.editReply({ embeds: [embed] });
   } else {
-    await interaction.editReply('HATA: Rütbe değiştirilemedi! Cookie kontrolü yapın veya bot yetkilerini kontrol edin.');
+    const errorMsg = result?.error?.errors?.[0]?.message || 'Bilinmeyen hata';
+    await interaction.editReply(`HATA: Rütbe değiştirilemedi! ${errorMsg}`);
   }
 }
 

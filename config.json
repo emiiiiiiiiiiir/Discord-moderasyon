@@ -1,7 +1,7 @@
 {
   "groupId": "32045279",
   "gameId": "14010229245",
-  "adminRoleIds": ["1420425067212574720", "1187266606057934878"],
+  "adminRoleIds": ["1450239609643470861"],
   "allowedRanks": [253, 254, 255],
   "maxRankCanAssign": 250,
   "branchGroups": {

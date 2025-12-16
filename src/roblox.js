@@ -80,6 +80,9 @@ class RobloxAPI {
   // Kullanıcının rütbesini değiştir (ROBLOX_COOKIE gerekli)
   async setUserRole(userId, groupId, roleId, cookie) {
     try {
+      console.log(`[setUserRole] userId: ${userId}, groupId: ${groupId}, roleId: ${roleId}`);
+      console.log(`[setUserRole] Cookie uzunluğu: ${cookie?.length || 0}`);
+      
       const response = await axios.patch(
         `${this.groupsURL}/v1/groups/${groupId}/users/${userId}`,
         { roleId: roleId },
@@ -90,10 +93,15 @@ class RobloxAPI {
           }
         }
       );
+      console.log('[setUserRole] Başarılı:', response.data);
       return response.data;
     } catch (error) {
+      console.log(`[setUserRole] İlk istek hatası - Status: ${error.response?.status}`);
+      console.log(`[setUserRole] Hata detayı:`, JSON.stringify(error.response?.data || error.message));
+      
       if (error.response?.status === 403 && error.response?.headers['x-csrf-token']) {
         const csrfToken = error.response.headers['x-csrf-token'];
+        console.log('[setUserRole] CSRF token alındı, tekrar deneniyor...');
         try {
           const retryResponse = await axios.patch(
             `${this.groupsURL}/v1/groups/${groupId}/users/${userId}`,
@@ -106,14 +114,15 @@ class RobloxAPI {
               }
             }
           );
+          console.log('[setUserRole] Retry başarılı:', retryResponse.data);
           return retryResponse.data;
         } catch (retryError) {
-          console.error('Rütbe değiştirme hatası (retry):', retryError.response?.data || retryError.message);
-          return null;
+          console.error('[setUserRole] Retry hatası - Status:', retryError.response?.status);
+          console.error('[setUserRole] Retry hata detayı:', JSON.stringify(retryError.response?.data || retryError.message));
+          return { error: retryError.response?.data || retryError.message };
         }
       }
-      console.error('Rütbe değiştirme hatası:', error.response?.data || error.message);
-      return null;
+      return { error: error.response?.data || error.message };
     }
   }
 

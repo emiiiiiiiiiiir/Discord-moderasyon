@@ -697,7 +697,7 @@ client.on('interactionCreate', async (interaction) => {
             .sort((a, b) => b.rank - a.rank)
             .slice(0, 25)
             .map(role => ({
-              name: `${role.name} (Seviye: ${role.rank})`,
+              name: role.name,
               value: role.name
             }));
           

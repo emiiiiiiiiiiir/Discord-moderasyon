@@ -38,7 +38,7 @@ const ACTIVE_TICKETS_FILE = './active_tickets.json';
 // Hata embed oluşturucu
 function createErrorEmbed(message) {
   return new EmbedBuilder()
-    .setDescription(`❌ ${message}`)
+    .setDescription(message)
     .setColor(0xED4245);
 }
 

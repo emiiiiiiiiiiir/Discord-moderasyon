@@ -1131,7 +1131,7 @@ async function handleUnban(interaction) {
       }
     }
     
-    let description = `İşlem başarıyla tamamlandı\n\n<@${discordUserId}> Kişisinin TAK sunucularından yasaklamaları başarıyla kaldırıldı.\n\n**Sebep**\n${reason}\n\n`;
+    let description = `İşlem başarıyla tamamlandı\n\n<@${discordUserId}> Kişisinin ATF sunucularından yasaklamaları başarıyla kaldırıldı.\n\n**Sebep**\n${reason}\n\n`;
     
     if (successGuilds.length > 0) {
       description += `**Yasağın kaldırıldığı sunucular:**\n${successGuilds.map(name => `• | ${name}`).join('\n')}\n\n`;

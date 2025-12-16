@@ -373,6 +373,7 @@ const commands = [
       option.setName('rütbe')
         .setDescription('Verilecek rütbe adı')
         .setRequired(true)
+        .setAutocomplete(true)
     )
     .addStringOption(option =>
       option.setName('sebep')
@@ -528,6 +529,7 @@ const commands = [
       option.setName('rütbe')
         .setDescription('Verilecek rütbe adı')
         .setRequired(true)
+        .setAutocomplete(true)
     )
     .addStringOption(option =>
       option.setName('sebep')
@@ -669,6 +671,43 @@ client.on('interactionCreate', async (interaction) => {
         }
       } catch (replyError) {
         console.error('Hata mesajı gönderilemedi:', replyError.message);
+      }
+    }
+  }
+  else if (interaction.isAutocomplete()) {
+    const { commandName } = interaction;
+    const focusedOption = interaction.options.getFocused(true);
+    
+    if (focusedOption.name === 'rütbe') {
+      try {
+        let groupId = config.groupId;
+        
+        if (commandName === 'branş-rütbe-değiştir') {
+          const branch = interaction.options.getString('branş');
+          if (branch && config.branchGroups[branch]) {
+            groupId = config.branchGroups[branch];
+          }
+        }
+        
+        const roles = await robloxAPI.getGroupRoles(groupId);
+        
+        if (roles && roles.length > 0) {
+          const filtered = roles
+            .filter(role => role.name.toLowerCase().includes(focusedOption.value.toLowerCase()))
+            .sort((a, b) => b.rank - a.rank)
+            .slice(0, 25)
+            .map(role => ({
+              name: `${role.name} (Seviye: ${role.rank})`,
+              value: role.name
+            }));
+          
+          await interaction.respond(filtered);
+        } else {
+          await interaction.respond([]);
+        }
+      } catch (error) {
+        console.error('Autocomplete hatası:', error);
+        await interaction.respond([]);
       }
     }
   }

@@ -706,8 +706,12 @@ client.on('interactionCreate', async (interaction) => {
           await interaction.respond([]);
         }
       } catch (error) {
-        console.error('Autocomplete hatası:', error);
-        await interaction.respond([]);
+        console.error('Autocomplete hatası:', error.message);
+        try {
+          await interaction.respond([]);
+        } catch (e) {
+          // Zaten yanıtlanmış, yoksay
+        }
       }
     }
   }
